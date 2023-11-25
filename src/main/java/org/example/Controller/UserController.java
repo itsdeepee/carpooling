@@ -1,44 +1,39 @@
 package org.example.Controller;
 
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.example.Exceptions.User.UserCreationException;
 import org.example.Model.DTOs.CustomResponseDTO;
-import org.example.Model.DTOs.UserDTO;
+import org.example.Model.DTOs.UserDTOs.CreateUserDTO;
+import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
+
+
 
 @RestController
 @RequestMapping(path = "/users")
+@Validated
 @Tag(name = "User Controller",
         description = "REST Controller for managing users.")
 public class UserController {
 
     private final UserService userService;
 
-
     @Autowired
     UserController(UserService userService) {
         this.userService = userService;
-
     }
 
-    @GetMapping
-    public List<UserDTO> getUsers() {
-        return userService.getAllUsers();
-    }
 
-    @PostMapping
     @Operation(
             summary = "Create a new user",
             description="Creates a new user with the properties passed in the request body",
@@ -57,40 +52,59 @@ public class UserController {
                     )
             }
     )
-    public ResponseEntity<CustomResponseDTO> createNewUser(@RequestBody @Valid UserDTO userDTO, BindingResult bindingResult) {
+    @PostMapping
+    public ResponseEntity<CustomResponseDTO> createNewUser(@Valid  @RequestBody CreateUserDTO createUserDTO) {
+        ResponseUserDTO responseUserDTO= userService.createUser(createUserDTO)
+                .orElseThrow(()->new UserCreationException("Please check the input data."));
 
-        //custom response object
         CustomResponseDTO customResponseDTO = new CustomResponseDTO();
-
-
-        //validation errors
-        if (bindingResult.hasErrors()) {
-            List<String> errorMessages=bindingResult.getFieldErrors().stream().map(error->error.getField()+": "+error.getDefaultMessage()).toList();
-            customResponseDTO.setResponseObject(null);
-            customResponseDTO.setResponseMessage("Wrong request body format");
-            customResponseDTO.setErrorDetails(errorMessages);
-
-
-            return new ResponseEntity<>(customResponseDTO, HttpStatus.BAD_REQUEST);
-        }
-
-        //When a user with the same email address already exists.
-        Optional<UserDTO> optionalUserDTO = userService.findByEmail(userDTO.getEmail());
-        if (optionalUserDTO.isPresent()) {
-            customResponseDTO.setResponseMessage("Email already in use.");
-            customResponseDTO.setResponseObject(null);
-            customResponseDTO.setErrorDetails(null);
-            return new ResponseEntity<>(customResponseDTO, HttpStatus.CONFLICT);
-        }
-
-
-        userService.save(userDTO);
-        customResponseDTO.setResponseObject(userDTO);
+        customResponseDTO.setResponseObject(responseUserDTO);
         customResponseDTO.setResponseMessage("User created successfully");
-        customResponseDTO.setErrorDetails(null);
+
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
 
     }
+
+
+    @GetMapping("/{id}")
+    public ResponseEntity<CustomResponseDTO> getUserById(@PathVariable @Valid Long id) {
+        ResponseUserDTO responseUserDTO=userService.findById(id);
+        CustomResponseDTO customResponseDTO = new CustomResponseDTO();
+        customResponseDTO.setResponseObject(responseUserDTO);
+        customResponseDTO.setResponseMessage("User found with id "+ id);
+
+        return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
+
+    }
+//    @GetMapping
+//    public List<UserDTO> getUsers() {
+//        //to modify
+//        return userService.getAllUsers();
+//    }
+
+    @GetMapping("/search/drivers")
+    public  ResponseEntity<CustomResponseDTO> searchUsersWithDriverRoleByName(
+           @RequestParam String fullName
+    ) {
+
+        List<ResponseUserDTO> responseUserDTOList=userService.findOnlyDriversByPartialName(fullName);
+        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+        if(responseUserDTOList.size()==0){
+
+            customResponseDTO.setResponseObject(responseUserDTOList);
+            customResponseDTO.setResponseMessage("No users found with name: "+fullName);
+            return new ResponseEntity<>(customResponseDTO,HttpStatus.NOT_FOUND);
+        }
+
+        customResponseDTO.setResponseObject(responseUserDTOList);
+        customResponseDTO.setResponseMessage("Users with driver role with name "+fullName);
+
+        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
+    }
+
+
+
+
 
 
 }

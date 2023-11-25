@@ -1,22 +1,16 @@
 package org.example.Model.DTOs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
+import org.example.Model.DTOs.UserDTOs.UserDTO;
 import org.example.Model.Location;
-import org.springframework.format.annotation.DateTimeFormat;
 
-import javax.print.attribute.standard.DateTimeAtProcessing;
-import java.text.DateFormat;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 

@@ -70,7 +70,7 @@ public class RideController {
             System.out.println("Binding result.getFieldErrorCount: " + bindingResult.getFieldErrorCount());
             customResponseDTO.setResponseObject(null);
             customResponseDTO.setResponseMessage("Wrong request body format");
-            customResponseDTO.setErrorDetails(errorMessages);
+
 
             return new ResponseEntity<>(customResponseDTO, HttpStatus.BAD_REQUEST);
         }

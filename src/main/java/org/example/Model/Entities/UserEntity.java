@@ -1,23 +1,45 @@
 package org.example.Model.Entities;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDate;
 
-@Getter
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
-@ToString
+@Entity
+@Getter
+@Setter
+@Table(name="users")
 public class UserEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name="user_id")
+    private Long userId;
+    @NotNull
     private String firstName;
-    private String middleName;
+    @NotNull
     private String lastName;
+    @NotNull
+    private String fullName;
+
+    @Email
+    @NotNull
+    @Column(unique = true)
     private String email;
+    @NotNull
     private String phoneNo;
-    private LocalDate birthday;
+    @Temporal(TemporalType.DATE)
+    @NotNull
+    private LocalDate birthdate;
     private String password;
+
+    private String role;
+
+//    @OneToOne(mappedBy = "user")
+//    private DriverEntity driverEntity;
 }

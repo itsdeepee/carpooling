@@ -1,4 +1,4 @@
-package org.example.Model.DTOs;
+package org.example.Model.DTOs.UserDTOs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -7,7 +7,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Getter
 @Setter
@@ -15,20 +14,19 @@ import java.util.List;
 @NoArgsConstructor
 @ToString
 @EqualsAndHashCode
-public class UserDTO {
+public class ResponseUserDTO {
 
 
 
 
     private Long ID;
-
-
     @NotBlank(message="First name cannot be black.")
     @Schema(description = "First name of user", example="Alice")
     private String firstName;
 
     @Schema(description="Middle name of user",example="J")
-    private String middleName;
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String fullName;
 
     @NotBlank(message="Last name cannot be black.")
     @Schema(description = "Last name of user",example="Blue")
@@ -44,7 +42,7 @@ public class UserDTO {
     @Size(min=9, max=15)
     @NotBlank(message="Phone number cannot be black.")
     @Pattern(regexp = "^(\\+\\d{2}( )?)?((\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{3}$",
-    message = "Phone number cannot contain letters or characters except for '+' sign to denote country code.")
+            message = "Phone number cannot contain letters or characters except for '+' sign to denote country code.")
     @Schema(description="Phone number of user",
             type="phone number",
             pattern ="^(\\+\\d{2}( )?)?((\\d{3}\\))|\\d{3})[- .]?\\d{3}[- .]?\\d{3}$",
@@ -58,11 +56,11 @@ public class UserDTO {
     @Schema(description = "Birthdate of user",type = "Date",pattern="yyyy-MM-dd")
     private LocalDate birthdate;
 
-    @Size(min=6,max=30)
-    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
-    @NotBlank(message="Password cannot be black.")
-    @Schema(description = "Password for this user")
-    private String password;
+
+    @NotNull
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private String role;
+
 
 
 
