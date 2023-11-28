@@ -14,6 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/rides")
 @Tag(name = "Ride Controller", description = "This REST controller" +
@@ -27,20 +29,19 @@ public class RideController {
         this.rideService = rideService;
     }
 
-//    //get available rides
-//    @GetMapping
-//    @Operation(
-//            summary = "Get a list of rides",
-//            description = "Retrieves all rides in the Carpooling application.",
-//            responses = {
-//                    @ApiResponse(
-//                            responseCode = "200",
-//                            description = "Successfully retrieved"
-//                    )
-//            })
-//    public List<RideDTO> getAllRides() {
-//        return this.rideService.findAll();
-//    }
+    @GetMapping("/active")
+    public ResponseEntity<CustomResponseDTO> getActiveRides(){
+        List<ResponseRideDTO> result=rideService.findActiveRides();
+        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+        if(result.size()==0){
+            customResponseDTO.setResponseMessage("There are no rides available");
+            customResponseDTO.setResponseObject(result);
+            return new ResponseEntity<>(customResponseDTO,HttpStatus.NOT_FOUND);
+        }
+        customResponseDTO.setResponseObject(result);
+        customResponseDTO.setResponseMessage(result.size()+" active rides found");
+        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
+    }
 
 
     @PostMapping("/{userId}/createRide")
@@ -57,16 +58,11 @@ public class RideController {
                     )
             })
     public ResponseEntity<CustomResponseDTO> createNewRide(@Valid @RequestBody CreateRideDTO createRideDTO, @PathVariable Long userId) {
-
         CustomResponseDTO customResponseDTO = new CustomResponseDTO();
-
         ResponseRideDTO responseRideDTO=rideService.createRide(createRideDTO,userId);
         customResponseDTO.setResponseObject(responseRideDTO);
         customResponseDTO.setResponseMessage("Ride created successfully");
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
 
-
     }
-
-
 }

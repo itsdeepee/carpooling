@@ -12,7 +12,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class RegisterDriverDTO {
-
     @NotBlank(message = "Driver license number is required")
     private String driverLicenseNumber;
     @NotBlank(message = "Vehicle type is required")

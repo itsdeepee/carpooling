@@ -1,5 +1,8 @@
 package org.example.Model.DTOs.Location;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.util.List;
@@ -10,8 +13,11 @@ import java.util.List;
 @Setter
 @ToString
 public class LocationDTO {
+    @NotBlank
     private String text;
     private String address;
+    @NotBlank
     private String fullPlaceName;
+    @NotEmpty
     private List<Double> coordinates;
 }

@@ -11,13 +11,4 @@ import org.springframework.web.bind.annotation.*;
         description = "This REST controller provides services to manage ride request of passages to specific rides")
 public class RideRequestController {
 
-//    @PostMapping
-//    public ResponseEntity<CustomResponseDTO> requestRide(@RequestBody @Valid RideRequest rideRequest, BindingResult bindingResult) {
-//        return null;
-//    }
-//
-//    @GetMapping
-//    public ResponseEntity<CustomResponseDTO> getAllRequests(){
-//       return null;
-//    }
 }

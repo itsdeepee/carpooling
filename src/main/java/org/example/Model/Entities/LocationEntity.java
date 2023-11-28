@@ -8,7 +8,7 @@ import lombok.*;
 import java.util.List;
 
 @Entity
-@Table(name="location")
+@Table(name = "location")
 @Getter
 @Setter
 @ToString
@@ -27,7 +27,6 @@ public class LocationEntity {
     private String fullPlaceName;
     @NotNull
     private List<Double> coordinates;
-
 
 
 }

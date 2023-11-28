@@ -8,10 +8,7 @@ import jakarta.validation.constraints.NotNull;
 public class RideRequest {
 
     private long rideRequestID;
-
-
     private Long rideID;
     private long passengerID;
-
     private RideRequestStatus status;
 }

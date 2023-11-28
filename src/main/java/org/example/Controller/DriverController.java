@@ -13,22 +13,16 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(path = "/drivers")
 @Validated
 public class DriverController {
-
-
     private final DriverService driverService;
-
     public DriverController(DriverService driverService) {
         this.driverService = driverService;
     }
-
     @PostMapping("/register/{userId}")
     public ResponseEntity<CustomResponseDTO> registerAsDriver(@PathVariable Long userId, @RequestBody RegisterDriverDTO registerDriverDTO) {
-        //should change to return some object
         ResponseDriverDTO responseDriverDTO=driverService.registerAsDriver(userId, registerDriverDTO);
-       CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-       customResponseDTO.setResponseMessage("Successfully registered user as driver");
-       customResponseDTO.setResponseObject(responseDriverDTO);
-
+        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+        customResponseDTO.setResponseMessage("Successfully registered user as driver");
+        customResponseDTO.setResponseObject(responseDriverDTO);
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
     }
 

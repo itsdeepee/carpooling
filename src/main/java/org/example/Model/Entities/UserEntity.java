@@ -14,13 +14,13 @@ import java.time.LocalDate;
 @Getter
 @Setter
 @ToString
-@Table(name="users")
+@Table(name = "users")
 @Entity
 public class UserEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name="user_id")
+    @Column(name = "user_id")
     private Long userId;
     @NotNull
     private String firstName;
@@ -28,7 +28,6 @@ public class UserEntity {
     private String lastName;
     @NotNull
     private String fullName;
-
     @Email
     @NotNull
     private String email;
@@ -38,7 +37,6 @@ public class UserEntity {
     @NotNull
     private LocalDate birthdate;
     private String password;
-
     private String role;
 
 }

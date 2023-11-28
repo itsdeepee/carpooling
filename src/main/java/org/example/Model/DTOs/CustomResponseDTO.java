@@ -17,5 +17,4 @@ import java.util.List;
 public class CustomResponseDTO {
     private Object responseObject;
     private String responseMessage;
-
 }

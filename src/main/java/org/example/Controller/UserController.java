@@ -17,22 +17,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-
-
 @RestController
 @RequestMapping(path = "/users")
 @Validated
 @Tag(name = "User Controller",
         description = "REST Controller for managing users.")
 public class UserController {
-
     private final UserService userService;
-
     @Autowired
-    UserController(UserService userService) {
+    public UserController(UserService userService) {
         this.userService = userService;
     }
-
 
     @Operation(
             summary = "Create a new user",
@@ -76,31 +71,27 @@ public class UserController {
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
 
     }
-//    @GetMapping
-//    public List<UserDTO> getUsers() {
-//        //to modify
-//        return userService.getAllUsers();
+
+    //move to driverController
+//    @GetMapping("/search/drivers")
+//    public  ResponseEntity<CustomResponseDTO> searchUsersWithDriverRoleByName(
+//           @RequestParam String fullName
+//    ) {
+//
+//        List<ResponseUserDTO> responseUserDTOList=userService.findOnlyDriversByPartialName(fullName);
+//        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+//        if(responseUserDTOList.size()==0){
+//
+//            customResponseDTO.setResponseObject(responseUserDTOList);
+//            customResponseDTO.setResponseMessage("No users found with name: "+fullName);
+//            return new ResponseEntity<>(customResponseDTO,HttpStatus.NOT_FOUND);
+//        }
+//
+//        customResponseDTO.setResponseObject(responseUserDTOList);
+//        customResponseDTO.setResponseMessage("Users with driver role with name "+fullName);
+//
+//        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
 //    }
-
-    @GetMapping("/search/drivers")
-    public  ResponseEntity<CustomResponseDTO> searchUsersWithDriverRoleByName(
-           @RequestParam String fullName
-    ) {
-
-        List<ResponseUserDTO> responseUserDTOList=userService.findOnlyDriversByPartialName(fullName);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        if(responseUserDTOList.size()==0){
-
-            customResponseDTO.setResponseObject(responseUserDTOList);
-            customResponseDTO.setResponseMessage("No users found with name: "+fullName);
-            return new ResponseEntity<>(customResponseDTO,HttpStatus.NOT_FOUND);
-        }
-
-        customResponseDTO.setResponseObject(responseUserDTOList);
-        customResponseDTO.setResponseMessage("Users with driver role with name "+fullName);
-
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
 
 
 

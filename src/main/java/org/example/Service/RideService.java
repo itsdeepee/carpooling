@@ -19,6 +19,7 @@ import org.example.Service.Mappers.RideMapper;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 
@@ -36,35 +37,41 @@ public class RideService {
     public RideService(RideRepository rideRepository,
                        RideMapper rideMapper,
                        DriverRepository driverRepository,
-
                        LocationRepository locationRepository,
                        LocationMapper locationMapper) {
         this.rideRepository = rideRepository;
-        this.rideMapper=rideMapper;
+        this.rideMapper = rideMapper;
         this.driverRepository = driverRepository;
-        this.locationRepository=locationRepository;
-        this.locationMapper=locationMapper;
+        this.locationRepository = locationRepository;
+        this.locationMapper = locationMapper;
     }
 
-//    public List<ResponseRideDTO> getAllRides(){
-//        return rideRepository.findAll();
-//    }
 
+
+    @Transactional
+    public List<ResponseRideDTO> findActiveRides(){
+        List<RideEntity> activeRides= rideRepository.findByDateTimeOfRideAfter(LocalDateTime.now());
+        activeRides.forEach(System.out::println);
+        List<ResponseRideDTO> resultRideList =activeRides.stream()
+                .map(rideMapper::mapCreateRideEntitytoRideDTO).toList();
+
+        return resultRideList;
+    }
 
     @Transactional
     public ResponseRideDTO createRide(CreateRideDTO createRideDTO, Long userId) {
         DriverEntity driverEntity = driverRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User might not exist or is not registered as driver"));
-        // save locations in database if new.
-        LocationEntity departureLocation=saveLocation(createRideDTO.getDepartureLocation());
-        LocationEntity destinationLocation=saveLocation(createRideDTO.getDestinationLocation());
-       //save new ride
-        RideEntity rideEntity=rideMapper.mapCreateRideDTOtoRideEntity(createRideDTO,driverEntity);
+
+        LocationEntity departureLocation = saveLocation(createRideDTO.getDepartureLocation());
+        LocationEntity destinationLocation = saveLocation(createRideDTO.getDestinationLocation());
+
+        RideEntity rideEntity = rideMapper.mapCreateRideDTOtoRideEntity(createRideDTO, driverEntity);
         rideEntity.setDepartureLocation(departureLocation);
         rideEntity.setDestinationLocation(destinationLocation);
-        RideEntity savedRideEntity=rideRepository.save(rideEntity);
+        RideEntity savedRideEntity = rideRepository.save(rideEntity);
 
-        //update driver info
-        Set<LocationEntity> searchedLocations=new HashSet<>();
+
+        Set<LocationEntity> searchedLocations = new HashSet<>();
         searchedLocations.add(departureLocation);
         searchedLocations.add(destinationLocation);
         driverEntity.setRecentAddresses(searchedLocations);
@@ -75,17 +82,15 @@ public class RideService {
         return rideMapper.mapCreateRideEntitytoRideDTO(rideEntity);
     }
 
-    private LocationEntity saveLocation(LocationDTO locationDTO){
-        Optional<LocationEntity> resultLocationEntity =locationRepository.findByFullPlaceName(locationDTO.getFullPlaceName());
-        if(resultLocationEntity.isPresent()){
+    private LocationEntity saveLocation(LocationDTO locationDTO) {
+        Optional<LocationEntity> resultLocationEntity = locationRepository.findByFullPlaceName(locationDTO.getFullPlaceName());
+        if (resultLocationEntity.isPresent()) {
             return resultLocationEntity.get();
         }
-        LocationEntity locationEntity=locationMapper.mapLocationDTOtoLocationEntity(locationDTO);
-        locationEntity=locationRepository.save(locationEntity);
+        LocationEntity locationEntity = locationMapper.mapLocationDTOtoLocationEntity(locationDTO);
+        locationEntity = locationRepository.save(locationEntity);
         return locationEntity;
     }
-
-
 
 
 }

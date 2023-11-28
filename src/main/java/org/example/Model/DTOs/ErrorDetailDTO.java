@@ -20,5 +20,5 @@ public class ErrorDetailDTO {
     private String detail;
     private String timeStamp;
 
-    private Map<String, List<ValidationErrorDTO>> errors=new HashMap<>();
+    private Map<String, List<ValidationErrorDTO>> errors = new HashMap<>();
 }

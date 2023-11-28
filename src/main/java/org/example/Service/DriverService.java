@@ -13,9 +13,6 @@ import org.example.Repository.UserRepository;
 import org.example.Service.Mappers.DriverMapper;
 import org.springframework.stereotype.Service;
 
-
-
-
 @Service
 public class DriverService {
 
@@ -28,14 +25,10 @@ public class DriverService {
            this.driverMapper=driverMapper;
     }
 
-
-
     @Transactional
     public ResponseDriverDTO registerAsDriver(Long userId, RegisterDriverDTO registerDriverDTO) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(()->new UserNotFoundException("There is no account associated with this id"));
-
-
         System.out.println(userEntity);
 
 //        could be changed to checking the role on the userEntity
@@ -45,8 +38,6 @@ public class DriverService {
             throw new DriverRegistrationException("Already a driver");
         }
 
-
-
         userEntity.setRole(Role.DRIVER.toString());
         userEntity=userRepository.save(userEntity);
         DriverEntity driverEntity=new DriverEntity();
@@ -55,8 +46,6 @@ public class DriverService {
         driverEntity.setVehicleType(registerDriverDTO.getVehicleType());
         driverEntity.setUser(userEntity);
         driverEntity.setDriverLicenseNumber(registerDriverDTO.getDriverLicenseNumber());
-
-       // DriverEntity driverEntity=driverMapper.mapRegisterDriverDTOToDriverEntity(registerDriverDTO,userEntity);
         driverRepository.save(driverEntity);
 
         return driverMapper.mapDriverEntityToResponseDriverDTO(driverEntity);

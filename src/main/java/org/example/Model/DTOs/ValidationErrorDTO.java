@@ -11,7 +11,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ValidationErrorDTO {
-
     private String code;
     private String message;
 }

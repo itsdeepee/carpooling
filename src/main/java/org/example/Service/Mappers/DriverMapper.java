@@ -2,6 +2,7 @@ package org.example.Service.Mappers;
 
 import org.example.Model.DTOs.DriverDTOs.RegisterDriverDTO;
 import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
+import org.example.Model.DTOs.DriverDTOs.SimplifiedDriverDTO;
 import org.example.Model.DTOs.UserDTOs.CreateUserDTO;
 import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Model.DTOs.UserDTOs.Role;
@@ -41,5 +42,16 @@ public class DriverMapper {
         responseDriverDTO.setRecentAddresses(driverEntity.getRecentAddresses());
 
         return responseDriverDTO;
+    }
+
+    public SimplifiedDriverDTO mapDriverEntityToSimpliedDriverDTO(DriverEntity driverEntity){
+        SimplifiedDriverDTO simplifiedDriverDTO=new SimplifiedDriverDTO();
+        simplifiedDriverDTO.setId(driverEntity.getId());
+        simplifiedDriverDTO.setFullName(driverEntity.getUser().getFullName());
+        simplifiedDriverDTO.setEmail(driverEntity.getUser().getEmail());
+        simplifiedDriverDTO.setPhoneNo(driverEntity.getUser().getPhoneNo());
+        simplifiedDriverDTO.setDriverLicenseNumber(driverEntity.getDriverLicenseNumber());
+        simplifiedDriverDTO.setVehicleType(driverEntity.getVehicleType());
+        return simplifiedDriverDTO;
     }
 }
