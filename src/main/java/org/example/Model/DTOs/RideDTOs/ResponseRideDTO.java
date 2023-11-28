@@ -1,12 +1,16 @@
-package org.example.Model.DTOs;
+package org.example.Model.DTOs.RideDTOs;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.ToString;
+import lombok.Setter;
+import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
+import org.example.Model.DTOs.Location.LocationDTO;
 import org.example.Model.DTOs.UserDTOs.UserDTO;
 import org.example.Model.Location;
 
@@ -14,18 +18,18 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 @Getter
-@ToString
-public class RideDTO {
+
+public class ResponseRideDTO {
 
     @NotNull(message = "Departure location cannot be empty")
-    private Location departureLocation;
+    private LocationDTO departureLocation;
 
     @NotNull(message = "Destination location cannot be empty")
-    private Location destinationLocation;
+    private LocationDTO destinationLocation;
 
 
     @JsonFormat(shape = JsonFormat.Shape.STRING,
@@ -39,12 +43,11 @@ public class RideDTO {
     private int availableSeats;
 
 
-    private Long driverId;
+    private ResponseDriverDTO driver;
 
 
-    private Set<UserDTO> passengers; //passengers in the ride
+
 
     private double cost;
     private List<String> additionalDetails;
-
 }

@@ -4,6 +4,7 @@ import jakarta.transaction.Transactional;
 import org.example.Exceptions.Driver.DriverRegistrationException;
 import org.example.Exceptions.User.UserNotFoundException;
 import org.example.Model.DTOs.DriverDTOs.RegisterDriverDTO;
+import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
 import org.example.Model.DTOs.UserDTOs.Role;
 import org.example.Model.Entities.DriverEntity;
 import org.example.Model.Entities.UserEntity;
@@ -30,27 +31,36 @@ public class DriverService {
 
 
     @Transactional
-    public boolean registerAsDriver(Long userId, RegisterDriverDTO registerDriverDTO) {
+    public ResponseDriverDTO registerAsDriver(Long userId, RegisterDriverDTO registerDriverDTO) {
         UserEntity userEntity = userRepository.findById(userId)
                 .orElseThrow(()->new UserNotFoundException("There is no account associated with this id"));
 
 
-        //could be changed to checking the role on the userEntity
-        //but while im still testing considering im deleting tables sometimes
-        //i want to check if it exists in the "driver" table
-        if(driverRepository.existsByUserEntity(userEntity)){
+        System.out.println(userEntity);
+
+//        could be changed to checking the role on the userEntity
+//        but while im still testing considering im deleting tables sometimes
+//        i want to check if it exists in the "driver" table
+        if(driverRepository.existsByUser(userEntity)){
             throw new DriverRegistrationException("Already a driver");
         }
 
 
+
         userEntity.setRole(Role.DRIVER.toString());
-        userRepository.save(userEntity);
+        userEntity=userRepository.save(userEntity);
+        DriverEntity driverEntity=new DriverEntity();
+        //  driverEntity.setUserEntity(userEntity);
+        driverEntity.setId(userEntity.getUserId());
+        driverEntity.setVehicleType(registerDriverDTO.getVehicleType());
+        driverEntity.setUser(userEntity);
+        driverEntity.setDriverLicenseNumber(registerDriverDTO.getDriverLicenseNumber());
 
-
-        DriverEntity driverEntity=driverMapper.mapRegisterDriverDTOToDriverEntity(registerDriverDTO,userEntity);
+       // DriverEntity driverEntity=driverMapper.mapRegisterDriverDTOToDriverEntity(registerDriverDTO,userEntity);
         driverRepository.save(driverEntity);
 
-       return true;
+        return driverMapper.mapDriverEntityToResponseDriverDTO(driverEntity);
+
     }
 
 

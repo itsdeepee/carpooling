@@ -10,10 +10,12 @@ import java.time.LocalDate;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Entity
+
 @Getter
 @Setter
+@ToString
 @Table(name="users")
+@Entity
 public class UserEntity {
 
     @Id
@@ -29,7 +31,6 @@ public class UserEntity {
 
     @Email
     @NotNull
-    @Column(unique = true)
     private String email;
     @NotNull
     private String phoneNo;
@@ -40,6 +41,4 @@ public class UserEntity {
 
     private String role;
 
-//    @OneToOne(mappedBy = "user")
-//    private DriverEntity driverEntity;
 }

@@ -78,6 +78,38 @@
             <artifactId>postgresql</artifactId>
             <version>42.6.0</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/androidx.annotation/annotation -->
+
+        <!-- https://mvnrepository.com/artifact/androidx.annotation/annotation-jvm -->
+
+
+        <!-- mapbox -->
+        <!-- https://mvnrepository.com/artifact/com.mapbox.mapboxsdk/mapbox-sdk-services -->
+        <dependency>
+            <groupId>com.mapbox.mapboxsdk</groupId>
+            <artifactId>mapbox-sdk-services</artifactId>
+            <version>5.9.0-alpha.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>androidx.annotation</groupId>
+                    <artifactId>annotation</artifactId>
+                </exclusion>
+
+            </exclusions>
+        </dependency>
+
+
+
+
+        <!-- Spring test -->
+        <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <version>3.1.5</version>
+            <scope>test</scope>
+        </dependency>
+
 
 
     </dependencies>

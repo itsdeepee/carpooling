@@ -2,17 +2,7 @@ package org.example.Controller;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import org.example.Model.DTOs.CustomResponseDTO;
-import org.example.Model.DTOs.RideDTO;
-import org.example.Model.RideRequest;
-import org.example.Model.RideRequestStatus;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 
 @RestController

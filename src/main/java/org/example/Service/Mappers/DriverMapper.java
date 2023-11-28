@@ -1,6 +1,7 @@
 package org.example.Service.Mappers;
 
 import org.example.Model.DTOs.DriverDTOs.RegisterDriverDTO;
+import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
 import org.example.Model.DTOs.UserDTOs.CreateUserDTO;
 import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Model.DTOs.UserDTOs.Role;
@@ -12,21 +13,33 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class DriverMapper {
+
+    UserMapper userMapper;
+
+    public DriverMapper(UserMapper userMapper){
+        this.userMapper=userMapper;
+    }
     public DriverEntity mapRegisterDriverDTOToDriverEntity(RegisterDriverDTO registerDriverDTO,UserEntity userEntity){
         DriverEntity driverEntity=new DriverEntity();
-        driverEntity.setUserEntity(userEntity);
+      //  driverEntity.setUserEntity(userEntity);
+
         driverEntity.setVehicleType(registerDriverDTO.getVehicleType());
         driverEntity.setDriverLicenseNumber(registerDriverDTO.getDriverLicenseNumber());
         return driverEntity;
     }
 
 
-    public RegisterDriverDTO mapDriverEntityToRegisterDriverDTO(DriverEntity driverEntity){
-        RegisterDriverDTO registerDriverDTO=new RegisterDriverDTO();
+    public ResponseDriverDTO mapDriverEntityToResponseDriverDTO(DriverEntity driverEntity){
+        ResponseDriverDTO responseDriverDTO=new ResponseDriverDTO();
 
-        registerDriverDTO.setDriverLicenseNumber(driverEntity.getDriverLicenseNumber());
-        registerDriverDTO.setVehicleType(driverEntity.getVehicleType());
+        ResponseUserDTO responseUserDTO=new ResponseUserDTO();
+        responseUserDTO=userMapper.mapUserEntityToResponseUserDTO(driverEntity.getUser());
+        responseDriverDTO.setResponseUserDTO(responseUserDTO);
+        responseDriverDTO.setDriverLicenseNumber(driverEntity.getDriverLicenseNumber());
+        responseDriverDTO.setVehicleType(driverEntity.getVehicleType());
+        responseDriverDTO.setRides(driverEntity.getRides());
+        responseDriverDTO.setRecentAddresses(driverEntity.getRecentAddresses());
 
-        return registerDriverDTO;
+        return responseDriverDTO;
     }
 }

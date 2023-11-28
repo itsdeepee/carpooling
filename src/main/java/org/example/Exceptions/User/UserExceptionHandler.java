@@ -55,17 +55,7 @@ public class UserExceptionHandler {
         return new ResponseEntity<>(errorDetail,null,HttpStatus.BAD_REQUEST);
     }
 
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<?> handleDataIntegrityViolation(DataIntegrityViolationException ex){
 
-        ErrorDetailDTO errorDetail=new ErrorDetailDTO();
-        errorDetail.setTimeStamp(LocalDateTime.now().toString());
-        errorDetail.setTitle("Internal server error. Request could not be processed");
-        errorDetail.setDetail("Ensure the data is correct or try again later.");
-        errorDetail.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
-        return new ResponseEntity<>(errorDetail,null,HttpStatus.INTERNAL_SERVER_ERROR);
-
-    }
 
 
 }

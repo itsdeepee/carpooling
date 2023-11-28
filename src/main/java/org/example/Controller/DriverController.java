@@ -2,6 +2,7 @@ package org.example.Controller;
 
 import org.example.Model.DTOs.CustomResponseDTO;
 import org.example.Model.DTOs.DriverDTOs.RegisterDriverDTO;
+import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
 import org.example.Service.DriverService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,9 +24,10 @@ public class DriverController {
     @PostMapping("/register/{userId}")
     public ResponseEntity<CustomResponseDTO> registerAsDriver(@PathVariable Long userId, @RequestBody RegisterDriverDTO registerDriverDTO) {
         //should change to return some object
-        driverService.registerAsDriver(userId, registerDriverDTO);
+        ResponseDriverDTO responseDriverDTO=driverService.registerAsDriver(userId, registerDriverDTO);
        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
        customResponseDTO.setResponseMessage("Successfully registered user as driver");
+       customResponseDTO.setResponseObject(responseDriverDTO);
 
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
     }
