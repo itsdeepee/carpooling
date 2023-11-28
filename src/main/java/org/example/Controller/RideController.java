@@ -64,4 +64,5 @@ public class RideController {
         customResponseDTO.setResponseMessage("Ride created successfully");
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
 
+    }
 }
