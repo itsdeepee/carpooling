@@ -43,8 +43,7 @@ public class ResponseUserDTO {
     @NotNull(message = "Date cannot be null")
     @Schema(description = "Birthdate of user", type = "Date", pattern = "yyyy-MM-dd")
     private LocalDate birthdate;
-    @NotNull
-    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+
     private String role;
 
 

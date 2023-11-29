@@ -2,7 +2,7 @@ package org.example.Model.Entities;
 
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,7 +16,7 @@ import java.util.Set;
 @Getter
 @ToString
 @Entity
-@Table(name = "rides")
+@Table(name = "rides",uniqueConstraints = {@UniqueConstraint(columnNames = {"driver_id","dateTimeOfRide"})})
 public class RideEntity {
 
     @Id
@@ -46,6 +46,12 @@ public class RideEntity {
             inverseJoinColumns = @JoinColumn(name = "user_id")
     )
     private Set<UserEntity> passengers;
+
+    @OneToMany(fetch = FetchType.LAZY)
+    @JoinColumn(name="ride_id",nullable = false)
+    @JsonManagedReference
+    @ToString.Exclude
+    private Set<RideRequestEntity> rideRequestEntities;
 
     private double cost;
     private List<String> additionalDetails;

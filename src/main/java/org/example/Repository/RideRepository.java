@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface RideRepository extends JpaRepository<RideEntity,Long> {
@@ -15,4 +16,5 @@ public interface RideRepository extends JpaRepository<RideEntity,Long> {
     @NotNull
     List<RideEntity> findAll();
     List<RideEntity> findByDateTimeOfRideAfter(LocalDateTime localDateTime);
+    Optional<RideEntity> findByRideId(Long rideId);
 }

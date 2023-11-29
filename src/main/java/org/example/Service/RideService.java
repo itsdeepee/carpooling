@@ -2,12 +2,10 @@ package org.example.Service;
 
 
 import jakarta.transaction.Transactional;
-import org.example.Exceptions.User.DuplicateEmailException;
 import org.example.Exceptions.User.UserNotFoundException;
 import org.example.Model.DTOs.Location.LocationDTO;
 import org.example.Model.DTOs.RideDTOs.CreateRideDTO;
 import org.example.Model.DTOs.RideDTOs.ResponseRideDTO;
-import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Model.Entities.DriverEntity;
 import org.example.Model.Entities.LocationEntity;
 import org.example.Model.Entities.RideEntity;
@@ -16,7 +14,6 @@ import org.example.Repository.LocationRepository;
 import org.example.Repository.RideRepository;
 import org.example.Service.Mappers.LocationMapper;
 import org.example.Service.Mappers.RideMapper;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;

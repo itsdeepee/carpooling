@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.Model.DTOs.DriverDTOs.SimplifiedDriverDTO;
 import org.example.Model.DTOs.Location.LocationDTO;
+import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 
 
 import java.time.LocalDateTime;
@@ -35,6 +36,7 @@ public class ResponseRideDTO {
     @Min(value = 1, message = "Available seats cannot be less than 1.")
     private int availableSeats;
     private SimplifiedDriverDTO driver;
+    private List<ResponseUserDTO> passengers;
     private double cost;
     private List<String> additionalDetails;
 }

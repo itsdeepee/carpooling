@@ -1,14 +1,11 @@
 package org.example.Model.DTOs.DriverDTOs;
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Model.Entities.LocationEntity;
 import org.example.Model.Entities.RideEntity;
-import org.example.Model.Entities.UserEntity;
 
-import java.util.List;
 import java.util.Set;
 
 

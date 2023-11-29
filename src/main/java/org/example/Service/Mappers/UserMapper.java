@@ -49,27 +49,6 @@ public class UserMapper {
         return responseUserDTO;
     }
 
-    public UserDTO mapUserEntityToUserDTO(UserEntity userEntity){
-        UserDTO userDTO= new UserDTO();
 
-        //map user dto
-        //properties
-        //id
-        userDTO.setID(userEntity.getUserId());
-        //firstName
-        userDTO.setFirstName(userEntity.getFirstName());
-        //middleName
-
-        //lastName
-        userDTO.setLastName(userEntity.getLastName());
-        //email
-        userDTO.setEmail(userEntity.getEmail());
-        //phoneNo
-        userDTO.setPhoneNo(userEntity.getPhoneNo());
-        //birthdate
-        userDTO.setBirthdate(userEntity.getBirthdate());
-
-        return userDTO;
-    }
 
 }

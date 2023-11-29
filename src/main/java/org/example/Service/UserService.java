@@ -22,7 +22,7 @@ import java.util.*;
 public class UserService {
 
     private final UserRepository userRepository;
-    private final UserMapper userMapper; //custom mapper
+    private final UserMapper userMapper;
 
 
     @Autowired
@@ -31,15 +31,6 @@ public class UserService {
         this.userMapper = userMapper;
 
     }
-
-    public List<UserDTO> getAllUsers() {
-        List<UserEntity> allUserEntities = userRepository.findAll();
-       return  allUserEntities.stream()
-                .map(userEntity -> userMapper.mapUserEntityToUserDTO(userEntity))
-                .toList();
-
-    }
-
 
     public Optional<ResponseUserDTO> createUser(CreateUserDTO createUserDTO) {
 
@@ -87,27 +78,6 @@ public class UserService {
         return resultUserDTOList;
     }
 
-
-    public List<UserDTO> findByFirstName(String firstName) {
-        List<UserEntity> usersEntitiesWithFirstname = userRepository.findByFirstName(firstName);
-
-        List<UserDTO> resultUserDTOList = usersEntitiesWithFirstname.stream()
-                .map(userEntity -> userMapper.mapUserEntityToUserDTO(userEntity))
-                .toList();
-
-        return resultUserDTOList;
-    }
-
-
-    public List<UserDTO> findByLastName(String lastName) {
-        List<UserEntity> usersEntitiesWithLastName = userRepository.findByLastName(lastName);
-
-        List<UserDTO> resultUserDTOList = usersEntitiesWithLastName.stream()
-                .map(userEntity -> userMapper.mapUserEntityToUserDTO(userEntity))
-                .toList();
-
-        return resultUserDTOList;
-    }
 
 
     public boolean existsByEmail(String email) {
