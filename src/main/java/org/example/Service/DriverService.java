@@ -14,7 +14,7 @@ import org.example.Service.Mappers.DriverMapper;
 import org.example.Service.Mappers.RideRequestMapper;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+
 
 @Service
 public class DriverService {
@@ -36,23 +36,14 @@ public class DriverService {
     @Transactional
     public ResponseDriverDTO registerAsDriver(Long userId, RegisterDriverDTO registerDriverDTO) {
         UserEntity userEntity = userRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("There is no account associated with this id"));
-        System.out.println(userEntity);
-
-
+                .orElseThrow(() -> new UserNotFoundException("There is no user associated with this id"));
         if (driverRepository.existsByUser(userEntity)) {
             throw new DriverRegistrationException("Already a driver");
         }
-
         userEntity.setRole(Role.DRIVER.toString());
-        userEntity = userRepository.save(userEntity);
-        DriverEntity driverEntity = new DriverEntity();
-        driverEntity.setId(userEntity.getUserId());
-        driverEntity.setVehicleType(registerDriverDTO.getVehicleType());
-        driverEntity.setUser(userEntity);
-        driverEntity.setDriverLicenseNumber(registerDriverDTO.getDriverLicenseNumber());
+     //   userEntity = userRepository.save(userEntity);
+        DriverEntity driverEntity = driverMapper.mapRegisterDriverDTOToDriverEntity(registerDriverDTO,userEntity);
         driverRepository.save(driverEntity);
-
         return driverMapper.mapDriverEntityToResponseDriverDTO(driverEntity);
 
     }

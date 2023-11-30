@@ -34,42 +34,6 @@ public class DriverController {
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
     }
 
-    @GetMapping("{driverId}/myRides/{rideId}/requests")
-    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@PathVariable Long rideId,@PathVariable Long driverId){
-        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(rideId,driverId);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        customResponseDTO.setResponseObject(responseRideRequestDTOS);
-        customResponseDTO.setResponseMessage(responseRideRequestDTOS.size()+" ride requests found");
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
-
-    @PutMapping("/{driverId}/rides/{rideId}/requests/{requestId}/accept")
-    public ResponseEntity<CustomResponseDTO> acceptRideRequest(
-            @PathVariable Long driverId,
-            @PathVariable Long rideId,
-            @PathVariable Long requestId
-    ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.acceptRideRequest(driverId,rideId,requestId);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        customResponseDTO.setResponseObject(responseRideRequestDTO);
-        customResponseDTO.setResponseMessage("Ride request status updated.");
-
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
-
-    @PutMapping("/{driverId}/rides/{rideId}/requests/{requestId}/decline")
-    public ResponseEntity<CustomResponseDTO> declineRideRequest(
-            @PathVariable Long driverId,
-            @PathVariable Long rideId,
-            @PathVariable Long requestId
-    ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.declineRideRequest(driverId,rideId,requestId);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        customResponseDTO.setResponseObject(responseRideRequestDTO);
-        customResponseDTO.setResponseMessage("Ride request status updated.");
-
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
 
 
 }

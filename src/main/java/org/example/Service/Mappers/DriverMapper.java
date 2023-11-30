@@ -17,11 +17,13 @@ public class DriverMapper {
     public DriverMapper(UserMapper userMapper){
         this.userMapper=userMapper;
     }
-    public DriverEntity mapRegisterDriverDTOToDriverEntity(RegisterDriverDTO registerDriverDTO,UserEntity userEntity){
-        DriverEntity driverEntity=new DriverEntity();
-      //  driverEntity.setUserEntity(userEntity);
 
+
+    public DriverEntity mapRegisterDriverDTOToDriverEntity(RegisterDriverDTO registerDriverDTO,UserEntity userEntity){
+        DriverEntity driverEntity = new DriverEntity();
+        driverEntity.setId(userEntity.getUserId());
         driverEntity.setVehicleType(registerDriverDTO.getVehicleType());
+        driverEntity.setUser(userEntity);
         driverEntity.setDriverLicenseNumber(registerDriverDTO.getDriverLicenseNumber());
         return driverEntity;
     }

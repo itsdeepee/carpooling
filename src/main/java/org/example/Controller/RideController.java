@@ -14,10 +14,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Currency;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/rides")
+@RequestMapping(path = "{userId}/rides")
 @Tag(name = "Ride Controller", description = "This REST controller" +
         "provides services to manage rides in the Carpooling application")
 public class RideController {
@@ -44,7 +45,7 @@ public class RideController {
     }
 
 
-    @PostMapping("/{userId}/createRide")
+    @PostMapping("/createRide")
     @Operation(summary = "Creates a new ride in the Carpooling application.",
             description = "Returns the new created ride.",
             responses = {
@@ -64,5 +65,19 @@ public class RideController {
         customResponseDTO.setResponseMessage("Ride created successfully");
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
 
+    }
+
+    /*
+     -> get rides history
+     */
+
+
+
+    //Delete a ride
+    @DeleteMapping("/delete/{rideId}")
+    public ResponseEntity<CustomResponseDTO> deleteRide(@PathVariable Long userId, @PathVariable Long rideId){
+        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+        //delete only if ride is canceled
+        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 }
