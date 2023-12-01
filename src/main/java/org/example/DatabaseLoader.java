@@ -74,6 +74,6 @@ public class DatabaseLoader  implements CommandLineRunner {
         user4.setRole("PASSENGER");
 
 
-        userRepository.saveAll(Arrays.asList(user1, user2,user3,user4));
+      //  userRepository.saveAll(Arrays.asList(user1, user2,user3,user4));
     }
 }

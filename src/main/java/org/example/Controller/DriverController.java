@@ -6,6 +6,7 @@ import org.example.Model.DTOs.DriverDTOs.ResponseDriverDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
 import org.example.Service.DriverService;
 import org.example.Service.RideRequestService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -18,12 +19,11 @@ import java.util.List;
 @Validated
 public class DriverController {
     private final DriverService driverService;
-    private final RideRequestService rideRequestService;
 
+    @Autowired
     public DriverController(DriverService driverService,
                             RideRequestService rideRequestService) {
         this.driverService = driverService;
-        this.rideRequestService=rideRequestService;
     }
     @PostMapping("/register/{userId}")
     public ResponseEntity<CustomResponseDTO> registerAsDriver(@PathVariable Long userId, @RequestBody RegisterDriverDTO registerDriverDTO) {

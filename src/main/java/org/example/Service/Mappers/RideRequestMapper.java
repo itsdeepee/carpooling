@@ -16,7 +16,7 @@ public class RideRequestMapper {
 
     public ResponseRideRequestDTO mapRideRequestEntityToResponseRideRequestDTO(RideRequestEntity rideRequestEntity){
         ResponseRideRequestDTO rideRequestDTO=new ResponseRideRequestDTO();
-        rideRequestDTO.setRequestId(rideRequestEntity.getRideRequestID());
+        rideRequestDTO.setRequestId(rideRequestEntity.getRequestID());
         rideRequestDTO.setRideId(rideRequestEntity.getRide().getRideId());
         rideRequestDTO.setStatus(rideRequestEntity.getStatus().name());
         UserEntity passenger=rideRequestEntity.getPassenger();

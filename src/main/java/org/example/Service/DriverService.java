@@ -12,6 +12,7 @@ import org.example.Repository.DriverRepository;
 import org.example.Repository.UserRepository;
 import org.example.Service.Mappers.DriverMapper;
 import org.example.Service.Mappers.RideRequestMapper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 
@@ -23,11 +24,10 @@ public class DriverService {
     private final DriverRepository driverRepository;
     private final DriverMapper driverMapper;
 
+    @Autowired
     public DriverService(UserRepository userRepository,
                          DriverRepository driverRepository,
-                         DriverMapper driverMapper,
-                         RideRequestService rideRequestService,
-                         RideRequestMapper rideRequestMapper) {
+                         DriverMapper driverMapper){
         this.userRepository = userRepository;
         this.driverRepository = driverRepository;
         this.driverMapper = driverMapper;

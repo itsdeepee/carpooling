@@ -1,6 +1,7 @@
 package org.example.Model.Entities;
 
 import jakarta.persistence.*;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;

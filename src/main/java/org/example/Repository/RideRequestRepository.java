@@ -13,10 +13,10 @@ import java.util.Optional;
 @Repository
 public interface RideRequestRepository extends JpaRepository<RideRequestEntity,Long> {
 
-    Optional<RideRequestEntity> findByRideRequestID(Long rideRequestID);
+    Optional<RideRequestEntity> findByRequestID(Long rideRequestID);
     List<RideRequestEntity> findByPassenger(UserEntity passenger);
     List<RideRequestEntity> findByPassengerAndStatus(UserEntity userEntity, RideRequestStatus status);
 
-   void deleteByRequestId(Long requestId);
+   void deleteByRequestID(Long rideRequestId);
 
 }

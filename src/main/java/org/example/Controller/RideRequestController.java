@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Objects;
 
 
 @RestController
@@ -28,8 +29,8 @@ public class RideRequestController {
     }
 
     @PostMapping(path="{userId}/rides/{rideId}/requests")
-    public ResponseEntity<CustomResponseDTO> makeRideRequest(@PathVariable Long rideId, @PathVariable Long userID){
-        ResponseRideRequestDTO response= rideRequestService.requestRide(rideId,userID);
+    public ResponseEntity<CustomResponseDTO> makeRideRequest( @PathVariable Long userId,@PathVariable Long rideId){
+        ResponseRideRequestDTO response= rideRequestService.requestRide(rideId,userId);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(response);
         customResponseDTO.setResponseMessage("A request has been created for ride id "+rideId);
@@ -38,31 +39,36 @@ public class RideRequestController {
 
 
     @GetMapping("{driverId}/rides/{rideId}/requests")
-    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@PathVariable Long rideId,@PathVariable Long driverId){
-        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(rideId,driverId);
+    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@PathVariable Long rideId,@PathVariable Long driverId, @RequestParam(value="status", required = false) String status){
+
+        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(rideId,driverId,status);
+
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTOS);
         customResponseDTO.setResponseMessage(responseRideRequestDTOS.size()+" ride requests found");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @GetMapping("{userId}/requests")
-    public ResponseEntity<CustomResponseDTO> getAllRequests(@PathVariable Long userId){
-        List<ResponseRideRequestDTO> response=rideRequestService.getAllRequests(userId);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        if(response.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
+
 
     @GetMapping("{userId}/requests")
-    public ResponseEntity<CustomResponseDTO> getRequestsByStatus(@PathVariable Long userId,@RequestParam String status){
-        List<ResponseRideRequestDTO> response=rideRequestService.getRequestsByStatus(userId,status);
+    public ResponseEntity<CustomResponseDTO> getRequests(@PathVariable Long userId,@RequestParam(value = "status",required = false)  String status){
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+        List<ResponseRideRequestDTO> response;
+
+        if(Objects.isNull(status) || status.isBlank()){
+            response=rideRequestService.getAllRequests(userId);
+
+
+        }else{
+            response=rideRequestService.getRequestsByStatus(userId,status);
+        }
+
         if(response.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+        customResponseDTO.setResponseObject(response);
+        customResponseDTO.setResponseMessage(response.size()+" requests found");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 

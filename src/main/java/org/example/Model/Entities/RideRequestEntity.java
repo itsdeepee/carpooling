@@ -19,7 +19,7 @@ uniqueConstraints = {@UniqueConstraint(columnNames = {"ride_id","user_id"})})
 public class RideRequestEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long rideRequestID;
+    private Long requestID;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name="ride_id",insertable=false, updatable=false)
