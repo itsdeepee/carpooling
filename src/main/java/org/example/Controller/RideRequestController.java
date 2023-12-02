@@ -6,6 +6,7 @@ import org.example.Model.DTOs.CustomResponseDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
 import org.example.Service.RideRequestService;
 import org.example.Service.RideService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +23,7 @@ public class RideRequestController {
     private final RideRequestService rideRequestService;
 
 
+    @Autowired
     public RideRequestController(RideRequestService rideRequestService,
                                  RideService rideService  ){
         this.rideRequestService=rideRequestService;

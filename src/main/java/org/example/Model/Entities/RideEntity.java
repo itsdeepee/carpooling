@@ -4,6 +4,7 @@ package org.example.Model.Entities;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -33,6 +34,8 @@ public class RideEntity {
     private LocalDateTime dateTimeOfRide;
 
     private int availableSeats;
+    @NotBlank(message = "Status cannot be blank")
+    private String rideStatus;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "driver_id", updatable = false, insertable = false)
@@ -52,6 +55,7 @@ public class RideEntity {
     @JsonManagedReference
     @ToString.Exclude
     private Set<RideRequestEntity> rideRequestEntities;
+
 
     private double cost;
     private List<String> additionalDetails;

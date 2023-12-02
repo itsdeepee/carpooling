@@ -38,9 +38,11 @@ public class RideMapper {
         responseRideDTO.setDepartureLocation(locationMapper.mapLocationEntitytoLocationDTO(rideEntity.getDepartureLocation()));
         responseRideDTO.setDestinationLocation(locationMapper.mapLocationEntitytoLocationDTO(rideEntity.getDestinationLocation()));
         responseRideDTO.setDateAndTimeOfRide(rideEntity.getDateTimeOfRide());
-        System.out.println(driverMapper.mapDriverEntityToSimpliedDriverDTO(rideEntity.getDriver()));
+        responseRideDTO.setStatus(rideEntity.getRideStatus());
         responseRideDTO.setDriver(driverMapper.mapDriverEntityToSimpliedDriverDTO(rideEntity.getDriver()));
         responseRideDTO.setAvailableSeats(rideEntity.getAvailableSeats());
+        responseRideDTO.setCost(rideEntity.getCost());
+
         responseRideDTO.setAdditionalDetails(rideEntity.getAdditionalDetails());
        responseRideDTO.setPassengers(rideEntity.getPassengers().stream().map(
                userEntity -> userMapper.mapUserEntityToResponseUserDTO(userEntity)
