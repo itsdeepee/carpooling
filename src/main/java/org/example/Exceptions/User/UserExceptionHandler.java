@@ -31,6 +31,13 @@ public class UserExceptionHandler {
         return new ResponseEntity<>(errorDetailDTO,null,HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(AuthorizationException.class)
+    public ResponseEntity<ErrorDetailDTO> handleAuthorizationException(AuthorizationException ex){
+        return new ResponseEntity<>(
+                getCustomErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access",ex.getMessage()),
+                null,HttpStatus.UNAUTHORIZED);
+    }
+
     @ExceptionHandler(DuplicateEmailException.class)
     public ResponseEntity<?> handleDuplicateEmailException(DuplicateEmailException ex){
         ErrorDetailDTO errorDetail=new ErrorDetailDTO();
@@ -53,6 +60,15 @@ public class UserExceptionHandler {
 
 
         return new ResponseEntity<>(errorDetail,null,HttpStatus.BAD_REQUEST);
+    }
+
+    private ErrorDetailDTO getCustomErrorDTO(int status, String title, String message){
+        ErrorDetailDTO errorDetailDTO=new ErrorDetailDTO();
+        errorDetailDTO.setTimeStamp(LocalDateTime.now().toString());
+        errorDetailDTO.setStatus(status);
+        errorDetailDTO.setTitle(title);
+        errorDetailDTO.setTitle(message);
+        return errorDetailDTO;
     }
 
 

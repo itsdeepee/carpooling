@@ -2,11 +2,15 @@ package org.example.Controller;
 
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.example.Model.DTOs.CustomResponseDTO;
+import org.example.Model.DTOs.RideRequestDTOs.CreateRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
+import org.example.Model.DTOs.RideRequestDTOs.UpdateRideRequestDTO;
 import org.example.Service.RideRequestService;
 import org.example.Service.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,28 +34,26 @@ public class RideRequestController {
 
     }
 
-    @PostMapping(path="{userId}/rides/{rideId}/requests")
-    public ResponseEntity<CustomResponseDTO> makeRideRequest( @PathVariable Long userId,@PathVariable Long rideId){
-        ResponseRideRequestDTO response= rideRequestService.requestRide(rideId,userId);
+    @PostMapping(path="/requests")
+    public ResponseEntity<CustomResponseDTO> createRideRequest(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO){
+        ResponseRideRequestDTO response= rideRequestService.requestRide(createRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(response);
-        customResponseDTO.setResponseMessage("A request has been created for ride id "+rideId);
+        customResponseDTO.setResponseMessage("Ride request has been successfully created");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.CREATED);
     }
 
 
-    @GetMapping("{driverId}/rides/{rideId}/requests")
-    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@PathVariable Long rideId,@PathVariable Long driverId, @RequestParam(value="status", required = false) String status){
+    //TODO: there are 2 get mapping that could be handled in one
+    @GetMapping("/requests")
+    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO, @RequestParam(value="status", required = false) String status){
 
-        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(rideId,driverId,status);
-
+        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(createRideRequestDTO,status);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTOS);
         customResponseDTO.setResponseMessage(responseRideRequestDTOS.size()+" ride requests found");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
-
-
 
     @GetMapping("{userId}/requests")
     public ResponseEntity<CustomResponseDTO> getRequests(@PathVariable Long userId,@RequestParam(value = "status",required = false)  String status){
@@ -102,13 +104,11 @@ public class RideRequestController {
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @PutMapping("/{userId}/rides/{rideId}/requests/{requestId}/cancel")
+    @PutMapping("/requests/cancel")
     public ResponseEntity<CustomResponseDTO> cancelRideRequest(
-            @PathVariable Long userId,
-            @PathVariable Long rideId,
-            @PathVariable Long requestId
-    ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.cancelRideRequest(userId,rideId,requestId);
+            @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
+            ){
+        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.cancelRideRequest(updateRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTO);
         customResponseDTO.setResponseMessage("Ride request status updated.");

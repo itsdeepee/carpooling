@@ -1,6 +1,8 @@
 package org.example.Service.Mappers;
 
+import org.example.Model.DTOs.RideRequestDTOs.CreateRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
+import org.example.Model.Entities.RideEntity;
 import org.example.Model.Entities.RideRequestEntity;
 import org.example.Model.Entities.UserEntity;
 import org.springframework.stereotype.Component;
@@ -24,6 +26,10 @@ public class RideRequestMapper {
         return rideRequestDTO;
 
     }
+
+//    public RideRequestEntity mapCreateRideRequestDTOToRideRequestEntity(CreateRideRequestDTO createRideRequestDTO){
+//
+//    }
 
 
 }

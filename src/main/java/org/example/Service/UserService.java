@@ -40,9 +40,9 @@ public class UserService {
         }
 
         boolean userAlreadyExists = existsByEmail(createUserDTO.getEmail());
-        if (userAlreadyExists) {
-            throw new DuplicateEmailException("Email already in use");
-        }
+//        if (userAlreadyExists) {
+//            throw new DuplicateEmailException("Email already in use");
+//        }
 
 
         UserEntity userEntityToAddToDB = userMapper.mapCreateUserDTOToUserEntity(createUserDTO, Role.PASSENGER);

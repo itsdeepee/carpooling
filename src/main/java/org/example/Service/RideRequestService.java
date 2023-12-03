@@ -1,8 +1,15 @@
 package org.example.Service;
 
 import jakarta.transaction.Transactional;
+import org.example.Exceptions.RideRequest.DuplicateRideRequestException;
+import org.example.Exceptions.Ride.RideNotFoundException;
+import org.example.Exceptions.RideRequest.InvalidRideRequestCancellationException;
+import org.example.Exceptions.RideRequest.RideRequestNotFoundException;
+import org.example.Exceptions.User.AuthorizationException;
 import org.example.Exceptions.User.UserNotFoundException;
+import org.example.Model.DTOs.RideRequestDTOs.CreateRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
+import org.example.Model.DTOs.RideRequestDTOs.UpdateRideRequestDTO;
 import org.example.Model.Entities.RideEntity;
 import org.example.Model.Entities.RideRequestEntity;
 import org.example.Model.Entities.UserEntity;
@@ -11,6 +18,9 @@ import org.example.Repository.RideRepository;
 import org.example.Repository.RideRequestRepository;
 import org.example.Repository.UserRepository;
 import org.example.Service.Mappers.RideRequestMapper;
+import org.example.Util.ConstraintNames;
+import org.hibernate.exception.ConstraintViolationException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -33,45 +43,65 @@ public class RideRequestService {
         this.rideRequestRepository = rideRequestRepository;
         this.rideRequestMapper = rideRequestMapper;
     }
-
+    /**
+     * Initiates a ride request based on the details provided in the CreateRideRequestDTO.
+     * Retrieves the ride and user entities using the provided DTO,
+     * creates a ride request entity, sets its details, saves it to the repository,
+     * and updates the ride entity accordingly.
+     * Returns a mapped DTO representing the ride request.
+     *
+     * @param createRideRequestDTO Details required to create a ride request.
+     * @return A ResponseRideRequestDTO representing the requested ride.
+     * @throws RuntimeException        if the ride is not found.
+     * @throws UserNotFoundException   if the user does not exist.
+     */
     @Transactional
-    public ResponseRideRequestDTO requestRide(Long rideId, Long userId) {
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("No ride found"));
-        UserEntity passenger = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User with id " + userId + " does not exist."));
+    public ResponseRideRequestDTO requestRide(CreateRideRequestDTO createRideRequestDTO) {
+        //TODO: if the DTO remains the same you have to check for null values
+        RideEntity rideEntity = rideRepository.findByRideId(createRideRequestDTO.getRideId()).orElseThrow(() -> new RideNotFoundException("No ride found with id "+createRideRequestDTO.getRideId()));
+        UserEntity passenger = userRepository.findById(createRideRequestDTO.getUserId()).orElseThrow(() -> new UserNotFoundException("User with id " + createRideRequestDTO.getUserId()+ " does not exist."));
         RideRequestEntity rideRequest = new RideRequestEntity();
         rideRequest.setRide(rideEntity);
         rideRequest.setPassenger(passenger);
         rideRequest.setStatus(RideRequestStatus.PENDING);
-        rideRequest = rideRequestRepository.save(rideRequest);
-        rideEntity.getRideRequestEntities().add(rideRequest);
-        rideRepository.save(rideEntity);
+        try{
+            RideRequestEntity createdEntity = rideRequestRepository.save(rideRequest);
+            rideEntity.getRideRequestEntities().add(createdEntity);
+            rideRepository.save(rideEntity);
+        }catch(DataIntegrityViolationException ex){
+            if(ex.getCause() instanceof ConstraintViolationException constraintViolationException){
+                if(constraintViolationException.getConstraintName().equals(ConstraintNames.UNIQUE_RIDE_USER_CONSTRAINT)){
+                  //TODO: add handler for this exception
+                    throw new DuplicateRideRequestException("Duplicate ride request. A request for this ride by the user already exists.");
+                }
 
+            }
+        }
         return rideRequestMapper.mapRideRequestEntityToResponseRideRequestDTO(rideRequest);
-
     }
 
     @Transactional
-    public List<ResponseRideRequestDTO> getRideRequestsForRide(Long rideId, Long userId, String status) {
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("Not found"));
+    public List<ResponseRideRequestDTO> getRideRequestsForRide(CreateRideRequestDTO createRideRequestDTO, String status) {
+        RideEntity rideEntity = rideRepository.findByRideId(createRideRequestDTO.getRideId()).orElseThrow(() -> new RideNotFoundException("Ride with given id does not exist."));
+        if (!Objects.equals(rideEntity.getDriver().getId(), createRideRequestDTO.getUserId())) {
+            throw new AuthorizationException("Trying to access ride requests information that are not managed by this user id.");
 
-        if (!Objects.equals(rideEntity.getDriver().getId(), userId)) {
-            throw new RuntimeException("Not authorized to access this information");
         }
-        List<ResponseRideRequestDTO> responseRideRequestDTOS = new ArrayList<>();
-        Set<RideRequestEntity> rideRequests = rideEntity.getRideRequestEntities();
-
-
-        if (!Objects.isNull(rideRequests)) {
-
+        if(Objects.isNull(rideEntity.getRideRequestEntities()) || rideEntity.getRideRequestEntities().size()==0){
+            return new ArrayList<>();
+        }else{
             if (!Objects.isNull(status) && !status.isEmpty()) {
                 RideRequestStatus rideRequestStatus = getRideRequestStatusFromString(status);
-                rideRequests=rideRequests.stream().filter(request->request.getStatus().equals(rideRequestStatus)).collect(Collectors.toSet());
+                Set<RideRequestEntity> rideRequests = rideEntity.getRideRequestEntities()
+                        .stream()
+                        .filter(request -> request.getStatus().equals(rideRequestStatus))
+                        .collect(Collectors.toSet());
             }
-            responseRideRequestDTOS = rideRequests.stream()
+            return rideEntity.getRideRequestEntities().stream()
                     .map(rideRequestMapper::mapRideRequestEntityToResponseRideRequestDTO).toList();
-            return responseRideRequestDTOS;
+
         }
-        return responseRideRequestDTOS;
+
 
     }
 
@@ -114,7 +144,8 @@ public class RideRequestService {
 
     @Transactional
     public ResponseRideRequestDTO acceptRideRequest(Long driverId, Long rideId, Long requestId) {
-        //TODO: custom exceptions
+        //TODO: logic can be changed
+
         RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
 
         RideRequestEntity rideRequest = new RideRequestEntity();
@@ -168,31 +199,31 @@ public class RideRequestService {
     }
 
     @Transactional
-    public ResponseRideRequestDTO cancelRideRequest(Long userId, Long rideId, Long requestId) {
-        //TODO: custom exceptions
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
-        RideRequestEntity rideRequest;
+    public ResponseRideRequestDTO cancelRideRequest(UpdateRideRequestDTO updateRideRequestDTO) {
+        //TODO: exception thrown here are not handled yet
 
-        Optional<RideRequestEntity> optionalRideRequest = rideEntity.getRideRequestEntities().stream()
-                .filter(rideRequestEntity -> Objects.equals(rideRequestEntity.getRequestID(), requestId))
-                .findFirst();
 
-        rideRequest = optionalRideRequest.orElseThrow(() -> new RuntimeException("Request does not exist for this ride"));
+        //just query for the ride request id and check everything from there
+        RideRequestEntity rideRequestEntity=rideRequestRepository.findByRequestID(updateRideRequestDTO.getRequestId())
+                .orElseThrow(()->new RideRequestNotFoundException("Ride request does not exist."));
 
-        if (!Objects.equals(rideRequest.getPassenger().getUserId(), userId)) {
-            throw new RuntimeException("Request was not made by this user");
+
+        if(!Objects.equals(rideRequestEntity.getPassenger().getUserId(),updateRideRequestDTO.getUserId())){
+            throw new AuthorizationException("Looks like the provided user id does not correspond to the user that created this ride request.");
+
         }
 
-        if (rideRequest.getStatus().equals(RideRequestStatus.PENDING)) {
-            rideRequest.setStatus(RideRequestStatus.CANCELED);
-            rideEntity.getRideRequestEntities().remove(rideRequest);
+        if (rideRequestEntity.getStatus().equals(RideRequestStatus.PENDING)) {
+            rideRequestEntity.setStatus(RideRequestStatus.CANCELED);
+            RideEntity rideEntity=rideRequestEntity.getRide();
+            rideEntity.getRideRequestEntities().remove(rideRequestEntity);
             rideRepository.save(rideEntity);
         } else {
-            throw new RuntimeException("Request cannot be canceled. Reason: Request has status: " + rideRequest.getStatus().name() + ".");
+            throw new InvalidRideRequestCancellationException("Reason: Request has status: " + rideRequestEntity.getStatus().name() + ".");
         }
 
 
-        return rideRequestMapper.mapRideRequestEntityToResponseRideRequestDTO(rideRequest);
+        return rideRequestMapper.mapRideRequestEntityToResponseRideRequestDTO(rideRequestEntity);
     }
 
     @Transactional

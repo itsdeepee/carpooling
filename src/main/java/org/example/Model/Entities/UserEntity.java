@@ -31,6 +31,7 @@ public class UserEntity {
     private String fullName;
     @Email
     @NotNull
+    @Column(unique = true)
     private String email;
     @NotNull
     private String phoneNo;
