@@ -20,6 +20,7 @@ import java.util.Objects;
 
 
 @RestController
+@RequestMapping(path="/api/v1/requests")
 @Tag(name = "Ride Request Controller",
         description = "This REST controller provides services to manage ride request of passages to specific rides")
 public class RideRequestController {
@@ -34,7 +35,7 @@ public class RideRequestController {
 
     }
 
-    @PostMapping(path="/requests")
+    @PostMapping
     public ResponseEntity<CustomResponseDTO> createRideRequest(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO){
         ResponseRideRequestDTO response= rideRequestService.requestRide(createRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
@@ -45,44 +46,30 @@ public class RideRequestController {
 
 
     //TODO: there are 2 get mapping that could be handled in one
-    @GetMapping("/requests")
-    public ResponseEntity<CustomResponseDTO> getRideRequestsForRide(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO, @RequestParam(value="status", required = false) String status){
-
-        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsForRide(createRideRequestDTO,status);
+    //received/sent
+    @GetMapping("/received")
+    public ResponseEntity<CustomResponseDTO> getRideRequestsReceivedForRideByDriver(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO, @RequestParam(value="status", required = false) String status){
+        List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsReceivedForRideByDriver(createRideRequestDTO,status);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTOS);
         customResponseDTO.setResponseMessage(responseRideRequestDTOS.size()+" ride requests found");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @GetMapping("{userId}/requests")
-    public ResponseEntity<CustomResponseDTO> getRequests(@PathVariable Long userId,@RequestParam(value = "status",required = false)  String status){
+    @GetMapping("/sent")
+    public ResponseEntity<CustomResponseDTO> getRequests(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO,@RequestParam(value = "status",required = false)  String status){
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        List<ResponseRideRequestDTO> response;
-
-        if(Objects.isNull(status) || status.isBlank()){
-            response=rideRequestService.getAllRequests(userId);
-
-
-        }else{
-            response=rideRequestService.getRequestsByStatus(userId,status);
-        }
-
-        if(response.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
+        List<ResponseRideRequestDTO> response=rideRequestService.getRideRequestsSentByUserWithOptionalFilter(createRideRequestDTO,status);
         customResponseDTO.setResponseObject(response);
         customResponseDTO.setResponseMessage(response.size()+" requests found");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @PutMapping("/{driverId}/rides/{rideId}/requests/{requestId}/accept")
+    @PutMapping("/accept")
     public ResponseEntity<CustomResponseDTO> acceptRideRequest(
-            @PathVariable Long driverId,
-            @PathVariable Long rideId,
-            @PathVariable Long requestId
+           @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
     ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.acceptRideRequest(driverId,rideId,requestId);
+        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.acceptRideRequest(updateRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTO);
         customResponseDTO.setResponseMessage("Ride request status updated.");
@@ -90,13 +77,11 @@ public class RideRequestController {
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @PutMapping("/{driverId}/rides/{rideId}/requests/{requestId}/decline")
+    @PutMapping("/decline")
     public ResponseEntity<CustomResponseDTO> declineRideRequest(
-            @PathVariable Long driverId,
-            @PathVariable Long rideId,
-            @PathVariable Long requestId
+           @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
     ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.declineRideRequest(driverId,rideId,requestId);
+        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.declineRideRequest(updateRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTO);
         customResponseDTO.setResponseMessage("Ride request status updated.");
@@ -104,21 +89,25 @@ public class RideRequestController {
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @PutMapping("/requests/cancel")
-    public ResponseEntity<CustomResponseDTO> cancelRideRequest(
-            @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
-            ){
-        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.cancelRideRequest(updateRideRequestDTO);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        customResponseDTO.setResponseObject(responseRideRequestDTO);
-        customResponseDTO.setResponseMessage("Ride request status updated.");
+//TODO to be deleted
 
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-    }
+//    @PutMapping("/requests/cancel")
+//    public ResponseEntity<CustomResponseDTO> cancelRideRequest(
+//            @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
+//            ){
+//        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.cancelRideRequest(updateRideRequestDTO);
+//        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
+//        customResponseDTO.setResponseObject(responseRideRequestDTO);
+//        customResponseDTO.setResponseMessage("Ride request status updated.");
+//
+//        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
+//    }
+//
 
-    @DeleteMapping("{userId}/requests/{requestId}/delete")
-    public ResponseEntity deleteRideRequest(@PathVariable Long requestId, @PathVariable Long userId){
-        boolean deleted= rideRequestService.deleteRideRequest(requestId,userId);
+    @DeleteMapping("/delete")
+    public ResponseEntity deleteRideRequest(@RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO){
+      //TODO: needs refactoring
+        boolean deleted= rideRequestService.deleteRideRequest(updateRideRequestDTO);
         if(deleted){
             return new ResponseEntity("Request deleted successfully",HttpStatus.OK);
         }else{

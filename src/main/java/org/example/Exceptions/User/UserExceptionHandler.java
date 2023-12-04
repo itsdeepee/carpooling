@@ -2,7 +2,6 @@ package org.example.Exceptions.User;
 
 
 import org.example.Model.DTOs.ErrorDetailDTO;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -31,11 +30,11 @@ public class UserExceptionHandler {
         return new ResponseEntity<>(errorDetailDTO,null,HttpStatus.NOT_FOUND);
     }
 
-    @ExceptionHandler(AuthorizationException.class)
-    public ResponseEntity<ErrorDetailDTO> handleAuthorizationException(AuthorizationException ex){
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ErrorDetailDTO> handleAuthorizationException(AccessDeniedException ex){
         return new ResponseEntity<>(
-                getCustomErrorDTO(HttpStatus.UNAUTHORIZED.value(), "Unauthorized access",ex.getMessage()),
-                null,HttpStatus.UNAUTHORIZED);
+                getCustomErrorDTO(HttpStatus.FORBIDDEN.value(), "No permissions for this resource",ex.getMessage()),
+                null,HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(DuplicateEmailException.class)
