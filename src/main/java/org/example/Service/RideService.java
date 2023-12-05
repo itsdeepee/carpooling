@@ -2,11 +2,13 @@ package org.example.Service;
 
 
 import jakarta.transaction.Transactional;
+import org.example.Exceptions.Driver.DriverNotFoundException;
+import org.example.Exceptions.Ride.CustomExceptions.RideNotFoundException;
+import org.example.Exceptions.Ride.CustomExceptions.InactiveRideUpdateException;
+import org.example.Exceptions.User.AccessDeniedException;
 import org.example.Exceptions.User.UserNotFoundException;
 import org.example.Model.DTOs.Location.LocationDTO;
-import org.example.Model.DTOs.RideDTOs.CreateRideDTO;
-import org.example.Model.DTOs.RideDTOs.PatchRideDTO;
-import org.example.Model.DTOs.RideDTOs.ResponseRideDTO;
+import org.example.Model.DTOs.RideDTOs.*;
 import org.example.Model.Entities.*;
 import org.example.Model.RideRequestStatus;
 import org.example.Repository.DriverRepository;
@@ -20,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -46,31 +49,31 @@ public class RideService {
         this.locationMapper = locationMapper;
     }
 
-
+    /**
+     * Retrieves a list of all rides optionally filtered by start and end locations.
+     * If start or end locations are provided, filters rides that contain the provided locations.
+     * If no locations are provided, retrieves all  rides.
+     *
+     * @param startLocation Start location to filter the rides (can be null or empty).
+     * @param endLocation   End location to filter the rides (can be null or empty).
+     * @return A list of ResponseRideDTO objects representing active rides, possibly filtered by locations.
+     */
     @Transactional
-    public List<ResponseRideDTO> findActiveRidesFiltered(String startLocation, String endLocation) {
-
-        List<RideEntity> activeRides = rideRepository.findByDateTimeOfRideAfter(LocalDateTime.now());
-        if (!Objects.isNull(startLocation) && !Objects.isNull(endLocation)) {
-            List<RideEntity> filteredRides = activeRides.stream().filter(rideEntity ->
-                    rideEntity.getDepartureLocation().getFullPlaceName().contains(startLocation)
-                            && rideEntity.getDestinationLocation().getFullPlaceName().contains(endLocation)
-
-
-            ).toList();
+    public List<ResponseRideDTO> findAllRidesFiltered(String startLocation, String endLocation) {
+        String start = (startLocation != null) ? startLocation : "";
+        String end = (endLocation != null) ? endLocation : "";
+        List<RideEntity> rides = rideRepository.findAll();
+        if (!start.isEmpty() || !end.isEmpty()) {
+            List<RideEntity> filteredRides = rides.stream()
+                    .filter(rideEntity ->
+                            rideEntity.getDepartureLocation().getFullPlaceName().contains(start) ||
+                                    rideEntity.getDestinationLocation().getFullPlaceName().contains(end)
+                    ).toList();
+            filteredRides.forEach(System.out::println);
             return filteredRides.stream()
-                    .filter(rideEntity -> rideEntity.getRideStatus().equals(RideStatus.ACTIVE.name()))
                     .map(rideMapper::mapCreateRideEntitytoRideDTO).toList();
         }
-
-
-        List<ResponseRideDTO> resultRideList =
-                activeRides.stream()
-                        .filter(rideEntity -> rideEntity.getRideStatus().equals(RideStatus.ACTIVE.name()))
-                        .map(rideMapper::mapCreateRideEntitytoRideDTO).toList();
-
-
-        return resultRideList;
+        return rides.stream().map(rideMapper::mapCreateRideEntitytoRideDTO).toList();
     }
 
     @Transactional
@@ -88,27 +91,36 @@ public class RideService {
         return resultRideList;
     }
 
+    /**
+     * Retrieves all rides created by a specific driver, optionally filtered by status.
+     *
+     * @param userId The unique identifier of the driver.
+     * @param status The status to filter the rides by (optional).
+     * @return A list of ResponseRideDTO representing rides created by the driver.
+     * @throws DriverNotFoundException When the driver is not found based on the provided user ID.
+     */
     @Transactional
-    public List<ResponseRideDTO> getRidesForUser(Long userId, String status) {
-        DriverEntity driverEntity = driverRepository.findById(userId).orElseThrow(() -> new RuntimeException("User is not a driver"));
+    public List<ResponseRideDTO> getAllRidesCreatedByDriver(Long userId, String status) {
+        DriverEntity driverEntity = driverRepository.findById(userId).orElseThrow(() -> new DriverNotFoundException("Driver not found for user id: "));
 
         Set<RideEntity> rideEntities = driverEntity.getRides();
         if (!Objects.isNull(status) && !status.isEmpty()) {
             RideStatus rideStatus = getStatusFromString(status);
-            return rideEntities.stream().filter(rideEntity -> rideEntity.getRideStatus().equals(rideStatus.name()))
+            return rideEntities.stream()
+                    .filter(rideEntity -> rideEntity.getRideStatus().equals(rideStatus.name()))
                     .map(rideMapper::mapCreateRideEntitytoRideDTO)
-                    .toList();
+                    .collect(Collectors.toList());
         }
 
 
         return rideEntities.stream()
                 .map(rideMapper::mapCreateRideEntitytoRideDTO)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     @Transactional
-    public ResponseRideDTO createRide(CreateRideDTO createRideDTO, Long userId) {
-        DriverEntity driverEntity = driverRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User might not exist or is not registered as driver"));
+    public ResponseRideDTO createRide(CreateRideDTO createRideDTO) {
+        DriverEntity driverEntity = driverRepository.findById(createRideDTO.getUserId()).orElseThrow(() -> new UserNotFoundException("User might not exist or is not registered as driver"));
 
         LocationEntity departureLocation = saveLocation(createRideDTO.getDepartureLocation());
         LocationEntity destinationLocation = saveLocation(createRideDTO.getDestinationLocation());
@@ -130,48 +142,78 @@ public class RideService {
         return rideMapper.mapCreateRideEntitytoRideDTO(rideEntity);
     }
 
-    public ResponseRideDTO patchRide(PatchRideDTO patchRideDTOhRideDTo, Long userId, Long rideId) {
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
-        if (!Objects.equals(rideEntity.getDriver().getId(), userId)) {
-            throw new RuntimeException("Not the driver of ride");
+    /**
+     * Updates the specified ride entity partially based on the provided PatchRideDTO.
+     * <p>
+     * 1. Retrieves the ride entity from the repository using the ride ID from the PatchRideDTO.
+     * 2. Validates the user's permission by comparing the ride's driver ID with the user ID from the PatchRideDTO.
+     * 3. Ensures that updates are allowed only for rides in an active status; otherwise, throws an exception.
+     * 4. Updates the ride entity fields if corresponding values are provided and valid in the PatchRideDTO.
+     * 5. Saves the modified ride entity back to the repository.
+     *
+     * @param patchRideDTO The PatchRideDTO containing fields to update for the ride entity.
+     * @return The ResponseRideDTO representing the modified ride entity.
+     * @throws RideNotFoundException       When the requested ride entity is not found in the repository.
+     * @throws AccessDeniedException       When the user attempting the update is not the driver of the ride.
+     * @throws InactiveRideUpdateException When updates are attempted on rides that are not in an active status.
+     */
+    public ResponseRideDTO patchRide(PatchRideDTO patchRideDTO) {
+        RideEntity rideEntity = rideRepository.findByRideId(patchRideDTO.getRideId())
+                .orElseThrow(() -> new RideNotFoundException("Ride not found"));
+        if (!Objects.equals(rideEntity.getDriver().getId(), patchRideDTO.getUserId())) {
+            throw new AccessDeniedException("Not the driver");
         }
         if (!Objects.equals(rideEntity.getRideStatus(), RideStatus.ACTIVE.name())) {
-            throw new RuntimeException("Can update only active rides");
+            throw new InactiveRideUpdateException("Can update only active rides");
         }
-        rideEntity.setAvailableSeats(patchRideDTOhRideDTo.getAvailableSeats());
-        rideEntity.setCost(patchRideDTOhRideDTo.getCost());
-        rideEntity.setAdditionalDetails(patchRideDTOhRideDTo.getAdditionalDetails());
+        if (patchRideDTO.getAvailableSeats() > 0) {
+            rideEntity.setAvailableSeats(patchRideDTO.getAvailableSeats());
+        }
+
+        if (patchRideDTO.getCost() > 0) {
+            rideEntity.setCost(patchRideDTO.getCost());
+        }
+
+        if (patchRideDTO.getAdditionalDetails() != null && !patchRideDTO.getAdditionalDetails().isEmpty()) {
+            rideEntity.setAdditionalDetails(patchRideDTO.getAdditionalDetails());
+        }
+
         RideEntity modifiedRideEntity = rideRepository.save(rideEntity);
         return rideMapper.mapCreateRideEntitytoRideDTO(modifiedRideEntity);
 
     }
 
-    public ResponseRideDTO updateRide(CreateRideDTO createRideDTO, Long userId, Long rideId) {
+    public ResponseRideDTO updateRide(UpdateRideDTO updateRideDTO) {
 
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("Ride not found"));
-        if (!Objects.equals(rideEntity.getDriver().getId(), userId)) {
-            throw new RuntimeException("Not the driver of ride");
+        RideEntity rideEntity = rideRepository.findByRideId(updateRideDTO.getRideId()).orElseThrow(() -> new RuntimeException("Ride not found"));
+        if (!Objects.equals(rideEntity.getDriver().getId(), updateRideDTO.getUserId())) {
+            throw new AccessDeniedException("No access rights to modify this ride. Not the same user");
         }
         if (!Objects.equals(rideEntity.getRideStatus(), RideStatus.ACTIVE.name())) {
-            throw new RuntimeException("Can update only active rides");
+            throw new InactiveRideUpdateException("Can only update active rides");
         }
 
+        //TODO: modify to custom exceptions
         if (!Objects.isNull(rideEntity.getPassengers())) {
             if (rideEntity.getPassengers().size() > 0) {
                 throw new RuntimeException("Cannot update ride because there are passengers for this ride. Please consider using PATCH ");
             }
         }
+        if(Objects.isNull(updateRideDTO.getRide())){
+            throw new RuntimeException("Object to update is null");
+        }
 
         //TODO: extract in ride mapper
         RideEntity updatedRideEntity = rideEntity;
-        LocationEntity departureLocation = saveLocation(createRideDTO.getDepartureLocation());
-        LocationEntity destinationLocation = saveLocation(createRideDTO.getDestinationLocation());
+        CreateRideDTO updatedRide=updateRideDTO.getRide();
+        LocationEntity departureLocation = saveLocation(updatedRide.getDepartureLocation());
+        LocationEntity destinationLocation = saveLocation(updatedRide.getDestinationLocation());
         updatedRideEntity.setDepartureLocation(departureLocation);
         updatedRideEntity.setDestinationLocation(destinationLocation);
-        updatedRideEntity.setDateTimeOfRide(createRideDTO.getDateAndTimeOfRide());
-        updatedRideEntity.setAvailableSeats(createRideDTO.getAvailableSeats());
-        updatedRideEntity.setCost(createRideDTO.getCost());
-        updatedRideEntity.setAdditionalDetails(createRideDTO.getAdditionalDetails());
+        updatedRideEntity.setDateTimeOfRide(updatedRide.getDateAndTimeOfRide());
+        updatedRideEntity.setAvailableSeats(updatedRide.getAvailableSeats());
+        updatedRideEntity.setCost(updatedRide.getCost());
+        updatedRideEntity.setAdditionalDetails(updatedRide.getAdditionalDetails());
 
         updatedRideEntity = rideRepository.save(updatedRideEntity);
         return rideMapper.mapCreateRideEntitytoRideDTO(updatedRideEntity);
@@ -181,16 +223,18 @@ public class RideService {
 
 
     @Transactional
-    public ResponseRideDTO cancelRide(Long driverId, Long rideId) {
-        RideEntity rideEntity = rideRepository.findByRideId(rideId).orElseThrow(() -> new RuntimeException("No ride found"));
-        if (!Objects.equals(rideEntity.getDriver().getId(), driverId)) {
-            throw new RuntimeException("Not allowed to cancel ride. You can cancel only rides you created");
+    public ResponseRideDTO cancelRide(CancelRideDTO cancelRideDTO) {
+        RideEntity rideEntity = rideRepository.findByRideId(cancelRideDTO.getRideId()).orElseThrow(() -> new RideNotFoundException("No ride found"));
+        if (!Objects.equals(rideEntity.getDriver().getId(), cancelRideDTO.getUserId())) {
+            throw new AccessDeniedException("No access right to cancel rides. User did not created this ride");
         }
         LocalDateTime timeOfRide = rideEntity.getDateTimeOfRide();
         Duration timeLeftToRide = Duration.between(LocalDateTime.now(), timeOfRide);
         if (timeLeftToRide.toHours() < 24) {
-            if (rideEntity.getPassengers().size() > 0) {
-                throw new RuntimeException("Not allowed to cancel ride. Ride cannot be cancel in less than 24 hours before ride if it has passengers");
+            if (!Objects.isNull(rideEntity.getPassengers())) {
+                if (!rideEntity.getPassengers().isEmpty()){
+                    throw new RuntimeException("Not allowed to cancel ride. Ride cannot be cancel in less than 24 hours before ride if it has passengers");
+                }
             }
         }
 
@@ -200,10 +244,7 @@ public class RideService {
             rideRequest.setStatus(RideRequestStatus.DECLINED);
         }
         rideEntity.setRideStatus(RideStatus.CANCELED.name());
-
-        rideEntity.setPassengers(null);
-
-
+        rideEntity.setPassengers(new HashSet<>());
         RideEntity modifiedRide = rideRepository.save(rideEntity);
         return rideMapper.mapCreateRideEntitytoRideDTO(modifiedRide);
 

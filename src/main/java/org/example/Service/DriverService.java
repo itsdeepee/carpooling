@@ -13,6 +13,7 @@ import org.example.Repository.UserRepository;
 import org.example.Service.Mappers.DriverMapper;
 import org.example.Service.Mappers.RideRequestMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 
@@ -43,7 +44,12 @@ public class DriverService {
         userEntity.setRole(Role.DRIVER.toString());
      //   userEntity = userRepository.save(userEntity);
         DriverEntity driverEntity = driverMapper.mapRegisterDriverDTOToDriverEntity(registerDriverDTO,userEntity);
-        driverRepository.save(driverEntity);
+        try{
+            driverRepository.save(driverEntity);
+        }catch (DataIntegrityViolationException ex){
+            throw  new DriverRegistrationException("The driver license number is associated with another user account");
+        }
+
         return driverMapper.mapDriverEntityToResponseDriverDTO(driverEntity);
 
     }

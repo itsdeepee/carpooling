@@ -32,31 +32,18 @@ public class UserService {
 
     }
 
-    public Optional<ResponseUserDTO> createUser(CreateUserDTO createUserDTO) {
-
+    public ResponseUserDTO createUser(CreateUserDTO createUserDTO) {
         int age = calculateAge(createUserDTO.getBirthdate());
         if (age < 16) {
             throw new UserCreationException("User must be above 16 years old.");
         }
-
         boolean userAlreadyExists = existsByEmail(createUserDTO.getEmail());
-//        if (userAlreadyExists) {
-//            throw new DuplicateEmailException("Email already in use");
-//        }
-
-
-        UserEntity userEntityToAddToDB = userMapper.mapCreateUserDTOToUserEntity(createUserDTO, Role.PASSENGER);
-
-        Optional<ResponseUserDTO> responseUserDTO = Optional.empty();
-        try {
-            UserEntity createdUser = userRepository.save(userEntityToAddToDB);
-            responseUserDTO = Optional.ofNullable(userMapper.mapUserEntityToResponseUserDTO(createdUser));
-
-        } catch (DataIntegrityViolationException ex) {
-            handleDataIntegrityViolation(ex);
+        if (userAlreadyExists) {
+            throw new DuplicateEmailException("Email already in use");
         }
-        return responseUserDTO;
-
+        UserEntity userEntityToAddToDB = userMapper.mapCreateUserDTOToUserEntity(createUserDTO, Role.PASSENGER);
+        UserEntity createdUser = userRepository.save(userEntityToAddToDB);
+        return userMapper.mapUserEntityToResponseUserDTO(createdUser);
     }
 
     public ResponseUserDTO findById(Long id) {
@@ -77,7 +64,6 @@ public class UserService {
 
         return resultUserDTOList;
     }
-
 
 
     public boolean existsByEmail(String email) {

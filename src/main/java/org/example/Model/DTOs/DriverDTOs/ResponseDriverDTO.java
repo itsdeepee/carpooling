@@ -1,5 +1,6 @@
 package org.example.Model.DTOs.DriverDTOs;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
@@ -14,6 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @ToString
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class ResponseDriverDTO {
     private ResponseUserDTO responseUserDTO;
     @NotBlank(message = "Driver license number is required")

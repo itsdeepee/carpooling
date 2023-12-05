@@ -3,14 +3,18 @@ package org.example.Controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.example.Exceptions.RideRequest.CustomExceptions.DuplicateRideRequestException;
 import org.example.Model.DTOs.CustomResponseDTO;
 import org.example.Model.DTOs.RideRequestDTOs.CreateRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.UpdateRideRequestDTO;
 import org.example.Service.RideRequestService;
 import org.example.Service.RideService;
+import org.example.Util.ConstraintNames;
+import org.hibernate.exception.ConstraintViolationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -37,7 +41,18 @@ public class RideRequestController {
 
     @PostMapping
     public ResponseEntity<CustomResponseDTO> createRideRequest(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO){
-        ResponseRideRequestDTO response= rideRequestService.requestRide(createRideRequestDTO);
+        ResponseRideRequestDTO response=new ResponseRideRequestDTO();
+        try{
+             response= rideRequestService.requestRide(createRideRequestDTO);
+        }catch (DataIntegrityViolationException ex) {
+            if (ex.getCause() instanceof ConstraintViolationException constraintViolationException) {
+                if (constraintViolationException.getConstraintName().equals(ConstraintNames.UNIQUE_RIDE_USER_CONSTRAINT)) {
+                    throw new DuplicateRideRequestException("This user has already made a request for this ride");
+                }
+
+            }
+        }
+
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(response);
         customResponseDTO.setResponseMessage("Ride request has been successfully created");
@@ -45,8 +60,7 @@ public class RideRequestController {
     }
 
 
-    //TODO: there are 2 get mapping that could be handled in one
-    //received/sent
+
     @GetMapping("/received")
     public ResponseEntity<CustomResponseDTO> getRideRequestsReceivedForRideByDriver(@RequestBody @Valid CreateRideRequestDTO createRideRequestDTO, @RequestParam(value="status", required = false) String status){
         List<ResponseRideRequestDTO> responseRideRequestDTOS=rideRequestService.getRideRequestsReceivedForRideByDriver(createRideRequestDTO,status);
@@ -67,8 +81,7 @@ public class RideRequestController {
 
     @PutMapping("/accept")
     public ResponseEntity<CustomResponseDTO> acceptRideRequest(
-           @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
-    ){
+           @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO){
         ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.acceptRideRequest(updateRideRequestDTO);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseRideRequestDTO);
@@ -89,29 +102,18 @@ public class RideRequestController {
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-//TODO to be deleted
 
-//    @PutMapping("/requests/cancel")
-//    public ResponseEntity<CustomResponseDTO> cancelRideRequest(
-//            @RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO
-//            ){
-//        ResponseRideRequestDTO responseRideRequestDTO=rideRequestService.cancelRideRequest(updateRideRequestDTO);
-//        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-//        customResponseDTO.setResponseObject(responseRideRequestDTO);
-//        customResponseDTO.setResponseMessage("Ride request status updated.");
-//
-//        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-//    }
-//
 
-    @DeleteMapping("/delete")
-    public ResponseEntity deleteRideRequest(@RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO){
-      //TODO: needs refactoring
+    @DeleteMapping
+    public ResponseEntity<CustomResponseDTO> deleteRideRequest(@RequestBody @Valid UpdateRideRequestDTO updateRideRequestDTO){
         boolean deleted= rideRequestService.deleteRideRequest(updateRideRequestDTO);
+        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         if(deleted){
-            return new ResponseEntity("Request deleted successfully",HttpStatus.OK);
+            customResponseDTO.setResponseMessage("Successfully deleted request");
+            return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
         }else{
-            return new ResponseEntity(HttpStatus.NO_CONTENT);
+            customResponseDTO.setResponseMessage("Request could not be deleted.");
+            return new ResponseEntity<>(customResponseDTO,HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }

@@ -4,7 +4,6 @@ package org.example.Service.Mappers;
 import org.example.Model.DTOs.UserDTOs.CreateUserDTO;
 import org.example.Model.DTOs.UserDTOs.ResponseUserDTO;
 import org.example.Model.DTOs.UserDTOs.Role;
-import org.example.Model.DTOs.UserDTOs.UserDTO;
 import org.example.Model.Entities.UserEntity;
 import org.springframework.stereotype.Component;
 

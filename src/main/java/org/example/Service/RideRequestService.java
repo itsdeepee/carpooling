@@ -2,6 +2,7 @@ package org.example.Service;
 
 import jakarta.transaction.Transactional;
 import org.apache.commons.lang3.StringUtils;
+import org.example.Exceptions.Ride.CustomExceptions.UnavailableRideException;
 import org.example.Exceptions.RideRequest.CustomExceptions.*;
 import org.example.Exceptions.Ride.CustomExceptions.RideNotFoundException;
 import org.example.Exceptions.User.AccessDeniedException;
@@ -11,6 +12,7 @@ import org.example.Model.DTOs.RideRequestDTOs.ResponseRideRequestDTO;
 import org.example.Model.DTOs.RideRequestDTOs.UpdateRideRequestDTO;
 import org.example.Model.Entities.RideEntity;
 import org.example.Model.Entities.RideRequestEntity;
+import org.example.Model.Entities.RideStatus;
 import org.example.Model.Entities.UserEntity;
 import org.example.Model.RideRequestStatus;
 import org.example.Repository.RideRepository;
@@ -61,6 +63,9 @@ public class RideRequestService {
         //TODO: if the DTO remains the same you have to check for null values
         RideEntity rideEntity = rideRepository.findByRideId(createRideRequestDTO.getRideId()).orElseThrow(() -> new RideNotFoundException("No ride found with id " + createRideRequestDTO.getRideId()));
         UserEntity passenger = userRepository.findById(createRideRequestDTO.getUserId()).orElseThrow(() -> new UserNotFoundException("User with id " + createRideRequestDTO.getUserId() + " does not exist."));
+        if (!Objects.equals(rideEntity.getRideStatus(), RideStatus.ACTIVE.name())) {
+            throw new UnavailableRideException("The ride is no longer active. Current ride status is " + rideEntity.getRideStatus());
+        }
         if (rideEntity.getAvailableSeats() <= 0) {
             throw new RequestsForFullRideException("Request cannot be created because there are no more available seats");
         }
@@ -68,18 +73,11 @@ public class RideRequestService {
         rideRequest.setRide(rideEntity);
         rideRequest.setPassenger(passenger);
         rideRequest.setStatus(RideRequestStatus.PENDING);
-        try {
-            RideRequestEntity createdEntity = rideRequestRepository.save(rideRequest);
-            rideEntity.getRideRequestEntities().add(createdEntity);
-            rideRepository.save(rideEntity);
-        } catch (DataIntegrityViolationException ex) {
-            if (ex.getCause() instanceof ConstraintViolationException constraintViolationException) {
-                if (constraintViolationException.getConstraintName().equals(ConstraintNames.UNIQUE_RIDE_USER_CONSTRAINT)) {
-                    throw new DuplicateRideRequestException("This user has already made a request for this ride");
-                }
 
-            }
-        }
+        RideRequestEntity createdEntity = rideRequestRepository.save(rideRequest);
+        rideEntity.getRideRequestEntities().add(createdEntity);
+        rideRepository.save(rideEntity);
+
         return rideRequestMapper.mapRideRequestEntityToResponseRideRequestDTO(rideRequest);
     }
 
@@ -133,7 +131,7 @@ public class RideRequestService {
 
 
         List<RideRequestEntity> rideRequestEntities;
-        if (StringUtils.isEmpty(status)) {
+        if (!Objects.isNull(status) && !status.isEmpty()) {
             RideRequestStatus rideRequestStatus = getRideRequestStatusFromString(status);
             rideRequestEntities = rideRequestRepository.findByPassengerAndStatus(userEntity, rideRequestStatus);
         } else {
@@ -267,7 +265,7 @@ public class RideRequestService {
     @Transactional
     public boolean deleteRideRequest(UpdateRideRequestDTO updateRideRequestDTO) {
         RideRequestEntity rideRequestEntity = rideRequestRepository.findByRequestID(updateRideRequestDTO.getRequestId())
-                .orElseThrow(() -> new RideRequestNotFoundException("Unable to cancel ride. Ride request with id " + updateRideRequestDTO.getRequestId() + " does not exist."));
+                .orElseThrow(() -> new RideRequestNotFoundException("Unable to delete ride. Ride request with id " + updateRideRequestDTO.getRequestId() + " does not exist."));
 
         if (!Objects.equals(rideRequestEntity.getPassenger().getUserId(), updateRideRequestDTO.getUserId())) {
             throw new AccessDeniedException("You do not have access rights to delete this ride request. Ride request can be deleted by the user that created it.");

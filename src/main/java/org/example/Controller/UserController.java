@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/users")
+@RequestMapping(path = "/api/v1/users")
 @Validated
 @Tag(name = "User Controller",
         description = "REST Controller for managing users.")
@@ -49,13 +49,10 @@ public class UserController {
     )
     @PostMapping
     public ResponseEntity<CustomResponseDTO> createNewUser(@Valid  @RequestBody CreateUserDTO createUserDTO) {
-        ResponseUserDTO responseUserDTO= userService.createUser(createUserDTO)
-                .orElseThrow(()->new UserCreationException("Please check the input data."));
-
+        ResponseUserDTO responseUserDTO= userService.createUser(createUserDTO);
         CustomResponseDTO customResponseDTO = new CustomResponseDTO();
         customResponseDTO.setResponseObject(responseUserDTO);
         customResponseDTO.setResponseMessage("User created successfully");
-
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
 
     }
@@ -72,26 +69,6 @@ public class UserController {
 
     }
 
-    //move to driverController
-//    @GetMapping("/search/drivers")
-//    public  ResponseEntity<CustomResponseDTO> searchUsersWithDriverRoleByName(
-//           @RequestParam String fullName
-//    ) {
-//
-//        List<ResponseUserDTO> responseUserDTOList=userService.findOnlyDriversByPartialName(fullName);
-//        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-//        if(responseUserDTOList.size()==0){
-//
-//            customResponseDTO.setResponseObject(responseUserDTOList);
-//            customResponseDTO.setResponseMessage("No users found with name: "+fullName);
-//            return new ResponseEntity<>(customResponseDTO,HttpStatus.NOT_FOUND);
-//        }
-//
-//        customResponseDTO.setResponseObject(responseUserDTOList);
-//        customResponseDTO.setResponseMessage("Users with driver role with name "+fullName);
-//
-//        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-//    }
 
 
 

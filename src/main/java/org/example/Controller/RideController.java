@@ -2,13 +2,11 @@ package org.example.Controller;
 
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.example.Model.DTOs.CustomResponseDTO;
-import org.example.Model.DTOs.RideDTOs.CreateRideDTO;
-import org.example.Model.DTOs.RideDTOs.PatchRideDTO;
-import org.example.Model.DTOs.RideDTOs.ResponseRideDTO;
+import org.example.Model.DTOs.RideDTOs.*;
 import org.example.Service.RideService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +18,7 @@ import java.util.List;
 @RestController
 @Tag(name = "Ride Controller", description = "This REST controller" +
         "provides services to manage rides in the Carpooling application")
+@RequestMapping(path="/api/v1/rides")
 public class RideController {
 
     private RideService rideService;
@@ -28,16 +27,30 @@ public class RideController {
     RideController(RideService rideService) {
         this.rideService = rideService;
     }
+    @Operation(
+            summary = "Retrieve all rides optionally filtered by start and end locations",
+            description = "Fetches all rides or filters them based on start and end locations if provided."
 
-    @GetMapping("rides/active")
-    public ResponseEntity<CustomResponseDTO> getAllActiveRides(
+    )
+    @GetMapping("/all")
+    public ResponseEntity<CustomResponseDTO> getAllRides(
+            @Parameter(
+                    name = "startLocation",
+                    description = "Start location for filtering rides (optional)",
+                    required = false
+            )
             @RequestParam(value="startLocation",required = false) String startLocation,
+            @Parameter(
+                    name = "endLocation",
+                    description = "End location for filtering rides (optional)",
+                    required = false
+            )
             @RequestParam(value="endLocation",required = false) String endLocation
             ){
-        List<ResponseRideDTO> result=rideService.findActiveRidesFiltered(startLocation,endLocation);
+        List<ResponseRideDTO> result=rideService.findAllRidesFiltered(startLocation,endLocation);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         if(result.size()==0){
-            return new ResponseEntity<>(customResponseDTO,HttpStatus.NO_CONTENT);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         customResponseDTO.setResponseObject(result);
         customResponseDTO.setResponseMessage(result.size()+" active rides found");
@@ -45,50 +58,35 @@ public class RideController {
     }
 
 
-
-    @GetMapping("{userId}/rides")
-    public ResponseEntity<CustomResponseDTO> getCurrentRides(@PathVariable Long userId, @RequestParam(value="status",required = false) String status){
-        List<ResponseRideDTO> result=rideService.getRidesForUser(userId,status);
+    @Operation(
+            summary="Get rides created by a driver",
+            description = "Retrieve all rides created by a specific driver, optionally filtered by status."
+    )
+    @GetMapping("/{userId}")
+    public ResponseEntity<CustomResponseDTO> getAllRidesCreatedByDriver(@PathVariable Long userId, @RequestParam(value="status",required = false) String status){
+        List<ResponseRideDTO> result=rideService.getAllRidesCreatedByDriver(userId,status);
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
         if(result.size()==0){
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         customResponseDTO.setResponseObject(result);
-        customResponseDTO.setResponseMessage(result.size()+" rides created in the last 30 days.");
-        return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
-
-    }
-
-    @GetMapping("{userId}/rides/history")
-    public ResponseEntity<CustomResponseDTO> getRidesHistory(@PathVariable Long userId){
-        List<ResponseRideDTO> result=rideService.getRidesHistory(userId);
-        CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        if(result.size()==0){
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        customResponseDTO.setResponseObject(result);
-        customResponseDTO.setResponseMessage(result.size()+" rides created in the last 30 days.");
+        customResponseDTO.setResponseMessage("Successfully retrieved "+result.size()+" rides.");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
 
     }
 
 
-    @PostMapping("{userId}/rides")
-    @Operation(summary = "Creates a new ride in the Carpooling application.",
-            description = "Returns the new created ride.",
-            responses = {
-                    @ApiResponse(
-                            responseCode = "201",
-                            description = "Ride created successfully"
-                    ),
-                    @ApiResponse(
-                            responseCode = "400",
-                            description = "Wrong request body format"
-                    )
-            })
-    public ResponseEntity<CustomResponseDTO> createNewRide(@Valid @RequestBody CreateRideDTO createRideDTO, @PathVariable Long userId) {
+
+
+    @PostMapping
+    @Operation(
+            summary = "Create a new ride",
+            description = "Creates a new ride in the Carpooling application."
+            + " Provide the necessary details in the request body to create the ride."
+    )
+    public ResponseEntity<CustomResponseDTO> createNewRide(@Valid @RequestBody CreateRideDTO createRideDTO) {
         CustomResponseDTO customResponseDTO = new CustomResponseDTO();
-        ResponseRideDTO responseRideDTO=rideService.createRide(createRideDTO,userId);
+        ResponseRideDTO responseRideDTO=rideService.createRide(createRideDTO);
         customResponseDTO.setResponseObject(responseRideDTO);
         customResponseDTO.setResponseMessage("Ride created successfully");
         return new ResponseEntity<>(customResponseDTO, HttpStatus.CREATED);
@@ -96,30 +94,34 @@ public class RideController {
     }
 
 
-    @PutMapping("{userId}/rides/{rideId}/cancel")
-    public ResponseEntity<CustomResponseDTO> cancelRide(@PathVariable Long userId, @PathVariable Long rideId){
+    @PutMapping("/cancel")
+    public ResponseEntity<CustomResponseDTO> cancelRide(@RequestBody @Valid CancelRideDTO cancelRideDTO){
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        ResponseRideDTO responseRideDTO=rideService.cancelRide(userId,rideId);
+        ResponseRideDTO responseRideDTO=rideService.cancelRide(cancelRideDTO);
         customResponseDTO.setResponseObject(responseRideDTO);
         customResponseDTO.setResponseMessage("Ride successfully canceled.");
         return new ResponseEntity<>(customResponseDTO,HttpStatus.OK);
     }
 
-    @PatchMapping("{userId}/rides/{rideId}")
-    public ResponseEntity<CustomResponseDTO> partialUpdateRide(@RequestBody @Valid PatchRideDTO patchRideDTOhRideDTo, @PathVariable Long userId, @PathVariable Long rideId){
+    @Operation(
+            summary="Partially update ride details",
+            description = "Allows for updating specific details of a ride such as available seats, cost, or additional details."
+    )
+    @PatchMapping
+    public ResponseEntity<CustomResponseDTO> partialUpdateRide(@RequestBody @Valid PatchRideDTO patchRideDTO){
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        ResponseRideDTO response=rideService.patchRide(patchRideDTOhRideDTo, userId, rideId);
+        ResponseRideDTO response=rideService.patchRide(patchRideDTO);
         customResponseDTO.setResponseObject(response);
-        customResponseDTO.setResponseMessage("Updated ride with id "+rideId);
+        customResponseDTO.setResponseMessage("Ride updated successfully.");
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
     }
 
-    @PutMapping("{userId}/rides/{rideId}")
-    public ResponseEntity<CustomResponseDTO> updateRide(@RequestBody @Valid CreateRideDTO createRideDTO, @PathVariable Long userId, @PathVariable Long rideId){
+    @PutMapping
+    public ResponseEntity<CustomResponseDTO> updateRide(@RequestBody @Valid UpdateRideDTO updateRideDTO){
         CustomResponseDTO customResponseDTO=new CustomResponseDTO();
-        ResponseRideDTO response=rideService.updateRide(createRideDTO, userId, rideId);
+        ResponseRideDTO response=rideService.updateRide(updateRideDTO);
         customResponseDTO.setResponseObject(response);
-        customResponseDTO.setResponseMessage("Updated ride with id "+rideId);
+        customResponseDTO.setResponseMessage("Updated ride with id "+updateRideDTO.getRideId());
         return new ResponseEntity<>(customResponseDTO, HttpStatus.OK);
     }
 

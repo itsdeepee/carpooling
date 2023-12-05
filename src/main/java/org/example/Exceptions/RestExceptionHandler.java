@@ -104,24 +104,24 @@ public class RestExceptionHandler {
         return new ResponseEntity<>(errorDetailDTO,null,HttpStatus.BAD_REQUEST);
 
     }
-    /**
-     * Handles DataIntegrityViolationException caused by database integrity constraint violations.
-     * Constructs an ErrorDetailDTO indicating a conflict due to data integrity issues.
-     *
-     * @param ex The DataIntegrityViolationException caught.
-     * @return ResponseEntity containing an ErrorDetailDTO describing the database integrity violation.
-     */
-    @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<ErrorDetailDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex){
-        return new ResponseEntity<>(
-                getCustomErrorDTO(HttpStatus.CONFLICT.value(),
-                        "Conflict: Database Integrity Violation",
-                        "The operation could not be completed due to data integrity constraints. " +
-                                "Ensure the data is correct or remove conflicting records."),
-                        HttpStatus.CONFLICT);
-
-
-    }
+//    /**
+//     * Handles DataIntegrityViolationException caused by database integrity constraint violations.
+//     * Constructs an ErrorDetailDTO indicating a conflict due to data integrity issues.
+//     *
+//     * @param ex The DataIntegrityViolationException caught.
+//     * @return ResponseEntity containing an ErrorDetailDTO describing the database integrity violation.
+//     */
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public ResponseEntity<ErrorDetailDTO> handleDataIntegrityViolation(DataIntegrityViolationException ex){
+//        return new ResponseEntity<>(
+//                getCustomErrorDTO(HttpStatus.CONFLICT.value(),
+//                        "Conflict: Database Integrity Violation",
+//                        "The operation could not be completed due to data integrity constraints. " +
+//                                "Ensure the data is correct or remove conflicting records."),
+//                        HttpStatus.CONFLICT);
+//
+//
+//    }
 
     /**
      * Handles NoHandlerFoundException when no handler is found for the requested endpoint.
@@ -142,7 +142,7 @@ public class RestExceptionHandler {
         errorDetailDTO.setTimeStamp(LocalDateTime.now().toString());
         errorDetailDTO.setStatus(status);
         errorDetailDTO.setTitle(title);
-        errorDetailDTO.setTitle(message);
+        errorDetailDTO.setDetail(message);
         return errorDetailDTO;
     }
 
